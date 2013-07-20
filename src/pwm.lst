@@ -1,0 +1,472 @@
+   1               		.file	"pwm.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               		.section	.rodata.str1.1,"aMS",@progbits,1
+  12               	.LC0:
+  13 0000 3078 3131 		.string	"0x11 - PWM_0 is up..."
+  13      202D 2050 
+  13      574D 5F30 
+  13      2069 7320 
+  13      7570 2E2E 
+  14               		.text
+  16               	pwm0.1957:
+  17               	.LFB8:
+  18               		.file 1 "pwm.c"
+   1:pwm.c         **** //-------------------------------------------
+   2:pwm.c         **** /*
+   3:pwm.c         **** PWM.c
+   4:pwm.c         **** 2011 - Josh Ashby
+   5:pwm.c         **** joshuaashby@joshashby.com
+   6:pwm.c         **** http://joshashby.com
+   7:pwm.c         **** http://github.com/JoshAshby
+   8:pwm.c         **** freenode/#linuxandsci - JoshAshby
+   9:pwm.c         **** */
+  10:pwm.c         **** //-------------------------------------------
+  11:pwm.c         **** #include "global.h"
+  12:pwm.c         **** 
+  13:pwm.c         **** void pwm_setup(char which) {
+  14:pwm.c         ****     //========================
+  15:pwm.c         ****     //PWM0
+  16:pwm.c         ****     //========================
+  17:pwm.c         ****     void pwm0(void) {
+  19               		.loc 1 17 0
+  20               		.cfi_startproc
+  21               	/* prologue: function */
+  22               	/* frame size = 0 */
+  23               	/* stack size = 0 */
+  24               	.L__stack_usage = 0
+  18:pwm.c         ****         TCCR0B |= (1<<CS00)
+  25               		.loc 1 18 0
+  26 0000 85B5      		in r24,0x25
+  27 0002 8360      		ori r24,lo8(3)
+  28 0004 85BD      		out 0x25,r24
+  19:pwm.c         ****                 | (1<<CS01); //set timerO clock prescaler to 64
+  20:pwm.c         ****         TCCR0A |= (1<<WGM00);//fast pwm with top as 0xFF
+  29               		.loc 1 20 0
+  30 0006 84B5      		in r24,0x24
+  31 0008 8160      		ori r24,lo8(1)
+  32 000a 84BD      		out 0x24,r24
+  21:pwm.c         **** 
+  22:pwm.c         ****         DDRD |= (1<<5);
+  33               		.loc 1 22 0
+  34 000c 559A      		sbi 0xa,5
+  23:pwm.c         ****         DDRD |= (1<<6); //set the OCR0 pins as outputs
+  35               		.loc 1 23 0
+  36 000e 569A      		sbi 0xa,6
+  24:pwm.c         ****         #if DEBUG
+  25:pwm.c         ****                 uart_sendstr("0x11 - PWM_0 is up...");
+  37               		.loc 1 25 0
+  38 0010 80E0      		ldi r24,lo8(.LC0)
+  39 0012 90E0      		ldi r25,hi8(.LC0)
+  40 0014 0C94 0000 		jmp uart_sendstr
+  41               	.LVL0:
+  42               		.cfi_endproc
+  43               	.LFE8:
+  45               		.section	.rodata.str1.1
+  46               	.LC1:
+  47 0016 3078 3132 		.string	"0x12 - PWM_1 is up..."
+  47      202D 2050 
+  47      574D 5F31 
+  47      2069 7320 
+  47      7570 2E2E 
+  48               		.text
+  50               	pwm1.1960:
+  51               	.LFB9:
+  26:pwm.c         ****         #endif
+  27:pwm.c         ****     }
+  28:pwm.c         ****     //========================
+  29:pwm.c         ****     //PWM1
+  30:pwm.c         ****     //========================
+  31:pwm.c         ****     void pwm1(void) {
+  52               		.loc 1 31 0
+  53               		.cfi_startproc
+  54               	/* prologue: function */
+  55               	/* frame size = 0 */
+  56               	/* stack size = 0 */
+  57               	.L__stack_usage = 0
+  32:pwm.c         ****         TCCR1B |= (1<<CS11)
+  58               		.loc 1 32 0
+  59 0018 E1E8      		ldi r30,lo8(-127)
+  60 001a F0E0      		ldi r31,0
+  61 001c 8081      		ld r24,Z
+  62 001e 8360      		ori r24,lo8(3)
+  63 0020 8083      		st Z,r24
+  33:pwm.c         ****                 | (1<<CS10);//set timer1 clock prescaler to 64
+  34:pwm.c         ****         TCCR1A |= (1<<WGM10)
+  64               		.loc 1 34 0
+  65 0022 E0E8      		ldi r30,lo8(-128)
+  66 0024 F0E0      		ldi r31,0
+  67 0026 8081      		ld r24,Z
+  68 0028 8960      		ori r24,lo8(9)
+  69 002a 8083      		st Z,r24
+  35:pwm.c         ****                 | (1<<WGM12); //fast pwm (8bit) with top as 0x03FF
+  36:pwm.c         **** 
+  37:pwm.c         **** //This bits for incase you want 16bit and not 10bit PWM on timer1
+  38:pwm.c         **** //        TCCR1A |= (1<<WGM11)
+  39:pwm.c         **** //                | (1<<WGM12)
+  40:pwm.c         **** //                | (1<<WGM13); //fast pwm (16bit) with top as 0x03FF
+  41:pwm.c         **** //        //ICR1H = 0xFF; //set IRC1 to max for full 16bit resolution
+  42:pwm.c         **** //        //IRC1L = 0xFF;
+  43:pwm.c         **** 
+  44:pwm.c         ****         DDRB |= (1<<1);
+  70               		.loc 1 44 0
+  71 002c 219A      		sbi 0x4,1
+  45:pwm.c         ****         DDRB |= (1<<2);//set the OCR1 pins as outputs
+  72               		.loc 1 45 0
+  73 002e 229A      		sbi 0x4,2
+  46:pwm.c         **** 
+  47:pwm.c         ****         #if DEBUG
+  48:pwm.c         ****                 uart_sendstr("0x12 - PWM_1 is up...");
+  74               		.loc 1 48 0
+  75 0030 80E0      		ldi r24,lo8(.LC1)
+  76 0032 90E0      		ldi r25,hi8(.LC1)
+  77 0034 0C94 0000 		jmp uart_sendstr
+  78               	.LVL1:
+  79               		.cfi_endproc
+  80               	.LFE9:
+  82               		.section	.rodata.str1.1
+  83               	.LC2:
+  84 002c 3078 3133 		.string	"0x13 - PWM_2 is up..."
+  84      202D 2050 
+  84      574D 5F32 
+  84      2069 7320 
+  84      7570 2E2E 
+  85               		.text
+  87               	pwm2.1963:
+  88               	.LFB10:
+  49:pwm.c         ****         #endif
+  50:pwm.c         ****     }
+  51:pwm.c         ****     //========================
+  52:pwm.c         ****     //PWM2
+  53:pwm.c         ****     //========================
+  54:pwm.c         ****     void pwm2(void) {
+  89               		.loc 1 54 0
+  90               		.cfi_startproc
+  91               	/* prologue: function */
+  92               	/* frame size = 0 */
+  93               	/* stack size = 0 */
+  94               	.L__stack_usage = 0
+  55:pwm.c         ****         TCCR2B |= (1<<CS22);//set timer2 clock prescaler to 64
+  95               		.loc 1 55 0
+  96 0038 E1EB      		ldi r30,lo8(-79)
+  97 003a F0E0      		ldi r31,0
+  98 003c 8081      		ld r24,Z
+  99 003e 8460      		ori r24,lo8(4)
+ 100 0040 8083      		st Z,r24
+  56:pwm.c         ****         TCCR2A |= (1<<WGM20);//fast pwm with top as 0xFF
+ 101               		.loc 1 56 0
+ 102 0042 E0EB      		ldi r30,lo8(-80)
+ 103 0044 F0E0      		ldi r31,0
+ 104 0046 8081      		ld r24,Z
+ 105 0048 8160      		ori r24,lo8(1)
+ 106 004a 8083      		st Z,r24
+  57:pwm.c         **** 
+  58:pwm.c         ****         DDRD |= (1<<3);
+ 107               		.loc 1 58 0
+ 108 004c 539A      		sbi 0xa,3
+  59:pwm.c         ****         DDRB |= (1<<3); //set the OCR2 pins as outputs
+ 109               		.loc 1 59 0
+ 110 004e 239A      		sbi 0x4,3
+  60:pwm.c         ****         #if DEBUG
+  61:pwm.c         ****                 uart_sendstr("0x13 - PWM_2 is up...");
+ 111               		.loc 1 61 0
+ 112 0050 80E0      		ldi r24,lo8(.LC2)
+ 113 0052 90E0      		ldi r25,hi8(.LC2)
+ 114 0054 0C94 0000 		jmp uart_sendstr
+ 115               	.LVL2:
+ 116               		.cfi_endproc
+ 117               	.LFE10:
+ 119               		.section	.rodata.str1.1
+ 120               	.LC3:
+ 121 0042 3078 3130 		.string	"0x10 - PWM_ALL is up..."
+ 121      202D 2050 
+ 121      574D 5F41 
+ 121      4C4C 2069 
+ 121      7320 7570 
+ 122               		.text
+ 123               	.global	pwm_setup
+ 125               	pwm_setup:
+ 126               	.LFB7:
+  13:pwm.c         **** void pwm_setup(char which) {
+ 127               		.loc 1 13 0
+ 128               		.cfi_startproc
+ 129               	.LVL3:
+ 130               	/* prologue: function */
+ 131               	/* frame size = 0 */
+ 132               	/* stack size = 0 */
+ 133               	.L__stack_usage = 0
+  62:pwm.c         ****         #endif
+  63:pwm.c         ****     }
+  64:pwm.c         ****     switch (which) {
+ 134               		.loc 1 64 0
+ 135 0058 8130      		cpi r24,lo8(1)
+ 136 005a 01F0      		breq .L6
+ 137 005c 00F0      		brlo .L7
+ 138 005e 8230      		cpi r24,lo8(2)
+ 139 0060 01F0      		breq .L8
+ 140 0062 8330      		cpi r24,lo8(3)
+ 141 0064 01F0      		breq .L9
+ 142 0066 0895      		ret
+ 143               	.L8:
+  65:pwm.c         ****         case 0:
+  66:pwm.c         ****             pwm0();
+  67:pwm.c         ****             pwm1();
+  68:pwm.c         ****             pwm2();
+  69:pwm.c         ****             #if DEBUG
+  70:pwm.c         ****                     uart_sendstr("0x10 - PWM_ALL is up...");
+  71:pwm.c         ****             #endif
+  72:pwm.c         ****             break;
+  73:pwm.c         ****         case 1:
+  74:pwm.c         ****             pwm0();
+  75:pwm.c         ****             break;
+  76:pwm.c         ****         case 2:
+  77:pwm.c         ****             pwm1();
+ 144               		.loc 1 77 0
+ 145 0068 0E94 0000 		call pwm1.1960
+ 146               	.LVL4:
+  78:pwm.c         ****             break;
+ 147               		.loc 1 78 0
+ 148 006c 0895      		ret
+ 149               	.LVL5:
+ 150               	.L9:
+  79:pwm.c         ****         case 3:
+  80:pwm.c         ****             pwm2();
+ 151               		.loc 1 80 0
+ 152 006e 0E94 0000 		call pwm2.1963
+ 153               	.LVL6:
+ 154 0072 0895      		ret
+ 155               	.LVL7:
+ 156               	.L7:
+  66:pwm.c         ****             pwm0();
+ 157               		.loc 1 66 0
+ 158 0074 0E94 0000 		call pwm0.1957
+ 159               	.LVL8:
+  67:pwm.c         ****             pwm1();
+ 160               		.loc 1 67 0
+ 161 0078 0E94 0000 		call pwm1.1960
+ 162               	.LVL9:
+  68:pwm.c         ****             pwm2();
+ 163               		.loc 1 68 0
+ 164 007c 0E94 0000 		call pwm2.1963
+ 165               	.LVL10:
+  70:pwm.c         ****                     uart_sendstr("0x10 - PWM_ALL is up...");
+ 166               		.loc 1 70 0
+ 167 0080 80E0      		ldi r24,lo8(.LC3)
+ 168 0082 90E0      		ldi r25,hi8(.LC3)
+ 169 0084 0C94 0000 		jmp uart_sendstr
+ 170               	.LVL11:
+ 171               	.L6:
+  74:pwm.c         ****             pwm0();
+ 172               		.loc 1 74 0
+ 173 0088 0E94 0000 		call pwm0.1957
+ 174               	.LVL12:
+  75:pwm.c         ****             break;
+ 175               		.loc 1 75 0
+ 176 008c 0895      		ret
+ 177               		.cfi_endproc
+ 178               	.LFE7:
+ 180               	.global	pwm0A
+ 182               	pwm0A:
+ 183               	.LFB11:
+  81:pwm.c         ****             break;
+  82:pwm.c         ****     }
+  83:pwm.c         ****     return;
+  84:pwm.c         **** }
+  85:pwm.c         **** 
+  86:pwm.c         **** void pwm0A(uint8_t value) {
+ 184               		.loc 1 86 0
+ 185               		.cfi_startproc
+ 186               	.LVL13:
+ 187               	/* prologue: function */
+ 188               	/* frame size = 0 */
+ 189               	/* stack size = 0 */
+ 190               	.L__stack_usage = 0
+  87:pwm.c         ****     TCCR0A |= (1<<COM0A1);
+ 191               		.loc 1 87 0
+ 192 008e 94B5      		in r25,0x24
+ 193 0090 9068      		ori r25,lo8(-128)
+ 194 0092 94BD      		out 0x24,r25
+  88:pwm.c         ****     OCR0A = value;
+ 195               		.loc 1 88 0
+ 196 0094 87BD      		out 0x27,r24
+ 197 0096 0895      		ret
+ 198               		.cfi_endproc
+ 199               	.LFE11:
+ 201               	.global	pwm0B
+ 203               	pwm0B:
+ 204               	.LFB12:
+  89:pwm.c         **** }
+  90:pwm.c         **** 
+  91:pwm.c         **** void pwm0B(uint8_t value) {
+ 205               		.loc 1 91 0
+ 206               		.cfi_startproc
+ 207               	.LVL14:
+ 208               	/* prologue: function */
+ 209               	/* frame size = 0 */
+ 210               	/* stack size = 0 */
+ 211               	.L__stack_usage = 0
+  92:pwm.c         ****     TCCR0A |= (1<<COM0B1);
+ 212               		.loc 1 92 0
+ 213 0098 94B5      		in r25,0x24
+ 214 009a 9062      		ori r25,lo8(32)
+ 215 009c 94BD      		out 0x24,r25
+  93:pwm.c         ****     OCR0B = value;
+ 216               		.loc 1 93 0
+ 217 009e 88BD      		out 0x28,r24
+ 218 00a0 0895      		ret
+ 219               		.cfi_endproc
+ 220               	.LFE12:
+ 222               	.global	pwm1A
+ 224               	pwm1A:
+ 225               	.LFB13:
+  94:pwm.c         **** }
+  95:pwm.c         **** 
+  96:pwm.c         **** void pwm1A(uint16_t value) {
+ 226               		.loc 1 96 0
+ 227               		.cfi_startproc
+ 228               	.LVL15:
+ 229               	/* prologue: function */
+ 230               	/* frame size = 0 */
+ 231               	/* stack size = 0 */
+ 232               	.L__stack_usage = 0
+  97:pwm.c         ****     TCCR1A |= (1<<COM1A1);
+ 233               		.loc 1 97 0
+ 234 00a2 E0E8      		ldi r30,lo8(-128)
+ 235 00a4 F0E0      		ldi r31,0
+ 236 00a6 2081      		ld r18,Z
+ 237 00a8 2068      		ori r18,lo8(-128)
+ 238 00aa 2083      		st Z,r18
+  98:pwm.c         ****     OCR1A = value;
+ 239               		.loc 1 98 0
+ 240 00ac 9093 8900 		sts 136+1,r25
+ 241 00b0 8093 8800 		sts 136,r24
+ 242 00b4 0895      		ret
+ 243               		.cfi_endproc
+ 244               	.LFE13:
+ 246               	.global	pwm1B
+ 248               	pwm1B:
+ 249               	.LFB14:
+  99:pwm.c         **** }
+ 100:pwm.c         **** 
+ 101:pwm.c         **** void pwm1B(uint16_t value) {
+ 250               		.loc 1 101 0
+ 251               		.cfi_startproc
+ 252               	.LVL16:
+ 253               	/* prologue: function */
+ 254               	/* frame size = 0 */
+ 255               	/* stack size = 0 */
+ 256               	.L__stack_usage = 0
+ 102:pwm.c         ****     TCCR1A |= (1<<COM1B1);
+ 257               		.loc 1 102 0
+ 258 00b6 E0E8      		ldi r30,lo8(-128)
+ 259 00b8 F0E0      		ldi r31,0
+ 260 00ba 2081      		ld r18,Z
+ 261 00bc 2062      		ori r18,lo8(32)
+ 262 00be 2083      		st Z,r18
+ 103:pwm.c         ****     OCR1B = value;
+ 263               		.loc 1 103 0
+ 264 00c0 9093 8B00 		sts 138+1,r25
+ 265 00c4 8093 8A00 		sts 138,r24
+ 266 00c8 0895      		ret
+ 267               		.cfi_endproc
+ 268               	.LFE14:
+ 270               	.global	pwm2A
+ 272               	pwm2A:
+ 273               	.LFB15:
+ 104:pwm.c         **** }
+ 105:pwm.c         **** 
+ 106:pwm.c         **** void pwm2A(uint8_t value) {
+ 274               		.loc 1 106 0
+ 275               		.cfi_startproc
+ 276               	.LVL17:
+ 277               	/* prologue: function */
+ 278               	/* frame size = 0 */
+ 279               	/* stack size = 0 */
+ 280               	.L__stack_usage = 0
+ 107:pwm.c         ****     TCCR2A |= (1<<COM2A1);
+ 281               		.loc 1 107 0
+ 282 00ca E0EB      		ldi r30,lo8(-80)
+ 283 00cc F0E0      		ldi r31,0
+ 284 00ce 9081      		ld r25,Z
+ 285 00d0 9068      		ori r25,lo8(-128)
+ 286 00d2 9083      		st Z,r25
+ 108:pwm.c         ****     OCR2A = value;
+ 287               		.loc 1 108 0
+ 288 00d4 8093 B300 		sts 179,r24
+ 289 00d8 0895      		ret
+ 290               		.cfi_endproc
+ 291               	.LFE15:
+ 293               	.global	pwm2B
+ 295               	pwm2B:
+ 296               	.LFB16:
+ 109:pwm.c         **** }
+ 110:pwm.c         **** 
+ 111:pwm.c         **** void pwm2B(uint8_t value) {
+ 297               		.loc 1 111 0
+ 298               		.cfi_startproc
+ 299               	.LVL18:
+ 300               	/* prologue: function */
+ 301               	/* frame size = 0 */
+ 302               	/* stack size = 0 */
+ 303               	.L__stack_usage = 0
+ 112:pwm.c         ****     TCCR2A |= (1<<COM2B1);
+ 304               		.loc 1 112 0
+ 305 00da E0EB      		ldi r30,lo8(-80)
+ 306 00dc F0E0      		ldi r31,0
+ 307 00de 9081      		ld r25,Z
+ 308 00e0 9062      		ori r25,lo8(32)
+ 309 00e2 9083      		st Z,r25
+ 113:pwm.c         ****     OCR2B = value;
+ 310               		.loc 1 113 0
+ 311 00e4 8093 B400 		sts 180,r24
+ 312 00e8 0895      		ret
+ 313               		.cfi_endproc
+ 314               	.LFE16:
+ 316               		.comm	led,1,1
+ 317               		.comm	once,3,1
+ 318               		.comm	dig_count,3,1
+ 319               		.comm	read_spot,2,1
+ 320               		.comm	input_buffer,700,1
+ 321               		.comm	mcp_data,6,1
+ 322               	.Letext0:
+ 323               		.file 2 "/usr/avr/include/stdint.h"
+ 324               		.file 3 "i2c.h"
+ 325               		.file 4 "uart.h"
+ 326               		.file 5 "button.h"
+ 327               		.file 6 "global.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 pwm.c
+     /tmp/cc2gIL7X.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cc2gIL7X.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cc2gIL7X.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cc2gIL7X.s:5      *ABS*:000000000000003b __RAMPZ__
+     /tmp/cc2gIL7X.s:6      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cc2gIL7X.s:7      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cc2gIL7X.s:16     .text:0000000000000000 pwm0.1957
+     /tmp/cc2gIL7X.s:50     .text:0000000000000018 pwm1.1960
+     /tmp/cc2gIL7X.s:87     .text:0000000000000038 pwm2.1963
+     /tmp/cc2gIL7X.s:125    .text:0000000000000058 pwm_setup
+     /tmp/cc2gIL7X.s:182    .text:000000000000008e pwm0A
+     /tmp/cc2gIL7X.s:203    .text:0000000000000098 pwm0B
+     /tmp/cc2gIL7X.s:224    .text:00000000000000a2 pwm1A
+     /tmp/cc2gIL7X.s:248    .text:00000000000000b6 pwm1B
+     /tmp/cc2gIL7X.s:272    .text:00000000000000ca pwm2A
+     /tmp/cc2gIL7X.s:295    .text:00000000000000da pwm2B
+                            *COM*:0000000000000001 led
+                            *COM*:0000000000000003 once
+                            *COM*:0000000000000003 dig_count
+                            *COM*:0000000000000002 read_spot
+                            *COM*:00000000000002bc input_buffer
+                            *COM*:0000000000000006 mcp_data
+
+UNDEFINED SYMBOLS
+uart_sendstr
+__do_copy_data
+__do_clear_bss

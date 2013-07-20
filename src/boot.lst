@@ -1,0 +1,175 @@
+   1               		.file	"boot.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               		.section	.rodata.str1.1,"aMS",@progbits,1
+  12               	.LC0:
+  13 0000 3078 3031 		.string	"0x01 - Hardware setup successful..."
+  13      202D 2048 
+  13      6172 6477 
+  13      6172 6520 
+  13      7365 7475 
+  14               	.LC1:
+  15 0024 4269 6F73 		.string	"Bios complete..."
+  15      2063 6F6D 
+  15      706C 6574 
+  15      652E 2E2E 
+  15      00
+  16               	.LC2:
+  17 0035 5374 6172 		.string	"Starting main code..."
+  17      7469 6E67 
+  17      206D 6169 
+  17      6E20 636F 
+  17      6465 2E2E 
+  18               		.text
+  19               	.global	bios
+  21               	bios:
+  22               	.LFB7:
+  23               		.file 1 "boot.c"
+   1:boot.c        **** //-------------------------------------------
+   2:boot.c        **** /*
+   3:boot.c        **** BOOT.c
+   4:boot.c        **** 2013 - Josh Ashby
+   5:boot.c        **** joshuaashby@joshashby.com
+   6:boot.c        **** http://joshashby.com
+   7:boot.c        **** http://github.com/JoshAshby
+   8:boot.c        **** freenode/#linuxandsci - JoshAshby
+   9:boot.c        **** */
+  10:boot.c        **** //-------------------------------------------
+  11:boot.c        **** //BIOS
+  12:boot.c        **** //========================
+  13:boot.c        **** /*
+  14:boot.c        **** This function is to setup hardaware, it will start
+  15:boot.c        **** the pwm, adc, uart, and twi along with turn on the CPU power pin.
+  16:boot.c        **** If the pin isn't pulled hight then somethings gone wrong before the
+  17:boot.c        **** CPU is even up and running the code most of the time. Just so you know
+  18:boot.c        **** 
+  19:boot.c        **** UART has to be started first if your deebuging and using the serial console to do so
+  20:boot.c        **** All debug keys get output to there
+  21:boot.c        **** 
+  22:boot.c        **** We're only starting PWM1 because the kernel uses TIMER0 for context switches,
+  23:boot.c        **** and the button debouncer uses TIMER2 for the overflow interrupt
+  24:boot.c        **** 
+  25:boot.c        **** ADC is started with the results left aligned to make fake 8bit
+  26:boot.c        **** */
+  27:boot.c        **** #include "global.h"
+  28:boot.c        **** void bios(void) {
+  24               		.loc 1 28 0
+  25               		.cfi_startproc
+  26               	/* prologue: function */
+  27               	/* frame size = 0 */
+  28               	/* stack size = 0 */
+  29               	.L__stack_usage = 0
+  29:boot.c        ****   uart_start();
+  30               		.loc 1 29 0
+  31 0000 0E94 0000 		call uart_start
+  32               	.LVL0:
+  30:boot.c        ****   pwm_setup(2);
+  33               		.loc 1 30 0
+  34 0004 82E0      		ldi r24,lo8(2)
+  35 0006 0E94 0000 		call pwm_setup
+  36               	.LVL1:
+  31:boot.c        ****   adc_start(1);
+  37               		.loc 1 31 0
+  38 000a 81E0      		ldi r24,lo8(1)
+  39 000c 0E94 0000 		call adc_start
+  40               	.LVL2:
+  32:boot.c        ****   twi_start();
+  41               		.loc 1 32 0
+  42 0010 0E94 0000 		call twi_start
+  43               	.LVL3:
+  33:boot.c        **** 
+  34:boot.c        ****   //button code
+  35:boot.c        ****   init_buttons();
+  44               		.loc 1 35 0
+  45 0014 0E94 0000 		call init_buttons
+  46               	.LVL4:
+  36:boot.c        **** 
+  37:boot.c        ****   //set the CPU_POW led pin to high to show we have power
+  38:boot.c        ****   DDRD |= (1<<CPU_POW);
+  47               		.loc 1 38 0
+  48 0018 529A      		sbi 0xa,2
+  39:boot.c        ****   PORTD |= (1<<CPU_POW);
+  49               		.loc 1 39 0
+  50 001a 5A9A      		sbi 0xb,2
+  40:boot.c        **** 
+  41:boot.c        ****   //set the status leds as outputs
+  42:boot.c        ****   DDRD |= (1<<stat_led1);
+  51               		.loc 1 42 0
+  52 001c 559A      		sbi 0xa,5
+  43:boot.c        ****   DDRD |= (1<<stat_led2);
+  53               		.loc 1 43 0
+  54 001e 569A      		sbi 0xa,6
+  44:boot.c        **** 
+  45:boot.c        ****   //if this is my dev board, pull them low because the leds are cathode
+  46:boot.c        ****   #if DEV
+  47:boot.c        ****     PORTD &= ~(1<<stat_led1)
+  48:boot.c        ****           & ~(1<<stat_led2);
+  49:boot.c        ****   #endif
+  50:boot.c        **** 
+  51:boot.c        ****   #if DEBUG
+  52:boot.c        ****     uart_sendstr("0x01 - Hardware setup successful...");
+  55               		.loc 1 52 0
+  56 0020 80E0      		ldi r24,lo8(.LC0)
+  57 0022 90E0      		ldi r25,hi8(.LC0)
+  58 0024 0E94 0000 		call uart_sendstr
+  59               	.LVL5:
+  53:boot.c        ****     uart_sendstr("Bios complete...");
+  60               		.loc 1 53 0
+  61 0028 80E0      		ldi r24,lo8(.LC1)
+  62 002a 90E0      		ldi r25,hi8(.LC1)
+  63 002c 0E94 0000 		call uart_sendstr
+  64               	.LVL6:
+  54:boot.c        ****     uart_sendstr("Starting main code...");
+  65               		.loc 1 54 0
+  66 0030 80E0      		ldi r24,lo8(.LC2)
+  67 0032 90E0      		ldi r25,hi8(.LC2)
+  68 0034 0C94 0000 		jmp uart_sendstr
+  69               	.LVL7:
+  70               		.cfi_endproc
+  71               	.LFE7:
+  73               		.comm	led,1,1
+  74               		.comm	once,3,1
+  75               		.comm	dig_count,3,1
+  76               		.comm	read_spot,2,1
+  77               		.comm	input_buffer,700,1
+  78               		.comm	mcp_data,6,1
+  79               	.Letext0:
+  80               		.file 2 "/usr/avr/include/stdint.h"
+  81               		.file 3 "i2c.h"
+  82               		.file 4 "uart.h"
+  83               		.file 5 "button.h"
+  84               		.file 6 "pwm.h"
+  85               		.file 7 "adc.h"
+  86               		.file 8 "global.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 boot.c
+     /tmp/ccSnxFOs.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccSnxFOs.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccSnxFOs.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccSnxFOs.s:5      *ABS*:000000000000003b __RAMPZ__
+     /tmp/ccSnxFOs.s:6      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccSnxFOs.s:7      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccSnxFOs.s:21     .text:0000000000000000 bios
+                            *COM*:0000000000000001 led
+                            *COM*:0000000000000003 once
+                            *COM*:0000000000000003 dig_count
+                            *COM*:0000000000000002 read_spot
+                            *COM*:00000000000002bc input_buffer
+                            *COM*:0000000000000006 mcp_data
+
+UNDEFINED SYMBOLS
+uart_start
+pwm_setup
+adc_start
+twi_start
+init_buttons
+uart_sendstr
+__do_copy_data
+__do_clear_bss

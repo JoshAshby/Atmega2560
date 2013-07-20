@@ -1,0 +1,457 @@
+   1               		.file	"adc.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               	.global	__vector_29
+  13               	__vector_29:
+  14               	.LFB7:
+  15               		.file 1 "adc.c"
+   1:adc.c         **** //-------------------------------------------
+   2:adc.c         **** /*
+   3:adc.c         **** ADC.c
+   4:adc.c         **** 2011 - Josh Ashby
+   5:adc.c         **** joshuaashby@joshashby.com
+   6:adc.c         **** http://joshashby.com
+   7:adc.c         **** http://github.com/JoshAshby
+   8:adc.c         **** freenode/#linuxandsci - JoshAshby
+   9:adc.c         **** */
+  10:adc.c         **** //-------------------------------------------
+  11:adc.c         **** #include "global.h"
+  12:adc.c         **** 
+  13:adc.c         **** /*
+  14:adc.c         **** anything that needs to be ran when ever a new conversion happens goes in here
+  15:adc.c         **** other wise, simply read from the data registers if data isn't all that important
+  16:adc.c         **** aka: you can miss a few bits of data and still be good to go
+  17:adc.c         **** */
+  18:adc.c         **** ISR(ADC_vect) {
+  16               		.loc 1 18 0
+  17               		.cfi_startproc
+  18 0000 1F92      		push r1
+  19               	.LCFI0:
+  20               		.cfi_def_cfa_offset 4
+  21               		.cfi_offset 1, -3
+  22 0002 0F92      		push r0
+  23               	.LCFI1:
+  24               		.cfi_def_cfa_offset 5
+  25               		.cfi_offset 0, -4
+  26 0004 0FB6      		in r0,__SREG__
+  27 0006 0F92      		push r0
+  28 0008 1124      		clr __zero_reg__
+  29               	/* prologue: Signal */
+  30               	/* frame size = 0 */
+  31               	/* stack size = 3 */
+  32               	.L__stack_usage = 3
+  33               	/* epilogue start */
+  19:adc.c         **** }
+  34               		.loc 1 19 0
+  35 000a 0F90      		pop r0
+  36 000c 0FBE      		out __SREG__,r0
+  37 000e 0F90      		pop r0
+  38 0010 1F90      		pop r1
+  39 0012 1895      		reti
+  40               		.cfi_endproc
+  41               	.LFE7:
+  43               		.section	.rodata.str1.1,"aMS",@progbits,1
+  44               	.LC0:
+  45 0000 3078 3033 		.string	"0x03 - ADC is up..."
+  45      202D 2041 
+  45      4443 2069 
+  45      7320 7570 
+  45      2E2E 2E00 
+  46               		.text
+  47               	.global	adc_start
+  49               	adc_start:
+  50               	.LFB8:
+  20:adc.c         **** 
+  21:adc.c         **** void adc_start(_Bool left) {//Passing a 0 will not left align results
+  51               		.loc 1 21 0
+  52               		.cfi_startproc
+  53               	.LVL0:
+  54               	/* prologue: function */
+  55               	/* frame size = 0 */
+  56               	/* stack size = 0 */
+  57               	.L__stack_usage = 0
+  22:adc.c         ****     ADCSRA |= (1 << ADPS2)
+  58               		.loc 1 22 0
+  59 0014 9091 7A00 		lds r25,122
+  60 0018 9760      		ori r25,lo8(7)
+  61 001a 9093 7A00 		sts 122,r25
+  23:adc.c         ****             | (1 << ADPS1)
+  24:adc.c         ****             | (1 << ADPS0); // Set ADC prescaler to 128 - 125KHz sample rate @ 16MHz
+  25:adc.c         ****     ADMUX |= (1 << REFS0); // Set ADC reference to AVCC
+  62               		.loc 1 25 0
+  63 001e 9091 7C00 		lds r25,124
+  64 0022 9064      		ori r25,lo8(64)
+  65 0024 9093 7C00 		sts 124,r25
+  26:adc.c         ****     if (left) {
+  66               		.loc 1 26 0
+  67 0028 8823      		tst r24
+  68 002a 01F0      		breq .L3
+  27:adc.c         ****         ADMUX |= (1 << ADLAR); // Left adjust ADC result to allow easy 8 bit reading
+  69               		.loc 1 27 0
+  70 002c 8091 7C00 		lds r24,124
+  71               	.LVL1:
+  72 0030 8062      		ori r24,lo8(32)
+  73 0032 8093 7C00 		sts 124,r24
+  74               	.L3:
+  28:adc.c         ****     }
+  29:adc.c         ****     ADCSRA |= (1 << ADATE);
+  75               		.loc 1 29 0
+  76 0036 8091 7A00 		lds r24,122
+  77 003a 8062      		ori r24,lo8(32)
+  78 003c 8093 7A00 		sts 122,r24
+  30:adc.c         ****     ADCSRA |= (1 << ADEN);  // Enable ADC
+  79               		.loc 1 30 0
+  80 0040 8091 7A00 		lds r24,122
+  81 0044 8068      		ori r24,lo8(-128)
+  82 0046 8093 7A00 		sts 122,r24
+  31:adc.c         ****     ADCSRA |= (1 << ADIE);  // Enable ADC Interrupt
+  83               		.loc 1 31 0
+  84 004a 8091 7A00 		lds r24,122
+  85 004e 8860      		ori r24,lo8(8)
+  86 0050 8093 7A00 		sts 122,r24
+  32:adc.c         **** 
+  33:adc.c         ****     ADMUX &= ~(1 << MUX0)
+  87               		.loc 1 33 0
+  88 0054 8091 7C00 		lds r24,124
+  89 0058 807F      		andi r24,lo8(-16)
+  90 005a 8093 7C00 		sts 124,r24
+  34:adc.c         ****           &  ~(1 << MUX1)
+  35:adc.c         ****           &  ~(1 << MUX2)
+  36:adc.c         ****           &  ~(1 << MUX3);
+  37:adc.c         **** 
+  38:adc.c         ****     ADCSRA |= (1 << ADSC);  // Start A2D Conversions
+  91               		.loc 1 38 0
+  92 005e 8091 7A00 		lds r24,122
+  93 0062 8064      		ori r24,lo8(64)
+  94 0064 8093 7A00 		sts 122,r24
+  39:adc.c         ****     #if DEBUG
+  40:adc.c         ****       uart_sendstr("0x03 - ADC is up...");
+  95               		.loc 1 40 0
+  96 0068 80E0      		ldi r24,lo8(.LC0)
+  97 006a 90E0      		ldi r25,hi8(.LC0)
+  98 006c 0C94 0000 		jmp uart_sendstr
+  99               	.LVL2:
+ 100               		.cfi_endproc
+ 101               	.LFE8:
+ 103               	.global	adc_stop
+ 105               	adc_stop:
+ 106               	.LFB9:
+  41:adc.c         ****     #endif
+  42:adc.c         ****     return;
+  43:adc.c         **** }
+  44:adc.c         **** 
+  45:adc.c         **** void adc_stop(void) {
+ 107               		.loc 1 45 0
+ 108               		.cfi_startproc
+ 109               	/* prologue: function */
+ 110               	/* frame size = 0 */
+ 111               	/* stack size = 0 */
+ 112               	.L__stack_usage = 0
+  46:adc.c         ****     //stop the ADC
+  47:adc.c         ****     ADCSRA &= ~(1 << ADSC);
+ 113               		.loc 1 47 0
+ 114 0070 EAE7      		ldi r30,lo8(122)
+ 115 0072 F0E0      		ldi r31,0
+ 116 0074 8081      		ld r24,Z
+ 117 0076 8F7B      		andi r24,lo8(-65)
+ 118 0078 8083      		st Z,r24
+ 119 007a 0895      		ret
+ 120               		.cfi_endproc
+ 121               	.LFE9:
+ 123               	.global	adc_change
+ 125               	adc_change:
+ 126               	.LFB10:
+  48:adc.c         ****     return;
+  49:adc.c         **** }
+  50:adc.c         **** 
+  51:adc.c         **** void adc_change(char chan) {
+ 127               		.loc 1 51 0
+ 128               		.cfi_startproc
+ 129               	.LVL3:
+ 130               	/* prologue: function */
+ 131               	/* frame size = 0 */
+ 132               	/* stack size = 0 */
+ 133               	.L__stack_usage = 0
+  52:adc.c         ****     //stop the ADC
+  53:adc.c         ****     ADCSRA &= ~(1 << ADSC);
+ 134               		.loc 1 53 0
+ 135 007c 9091 7A00 		lds r25,122
+ 136 0080 9F7B      		andi r25,lo8(-65)
+ 137 0082 9093 7A00 		sts 122,r25
+  54:adc.c         ****     //and now change the ADMUX bits to fit which channal you want to use
+  55:adc.c         ****     //sets the MUX0-3 bits inthe ADMUX register
+  56:adc.c         ****     switch (chan) {
+ 138               		.loc 1 56 0
+ 139 0086 90E0      		ldi r25,0
+ 140 0088 8930      		cpi r24,9
+ 141 008a 9105      		cpc r25,__zero_reg__
+ 142 008c 00F4      		brsh .L10
+ 143 008e FC01      		movw r30,r24
+ 144 0090 E050      		subi r30,lo8(-(gs(.L12)))
+ 145 0092 F040      		sbci r31,hi8(-(gs(.L12)))
+  57:adc.c         ****         case 0://binary 0 (reading downwards)
+  58:adc.c         ****             ADMUX &= ~(1 << MUX0)
+  59:adc.c         ****                   &  ~(1 << MUX1)
+  60:adc.c         ****                   &  ~(1 << MUX2)
+  61:adc.c         ****                   &  ~(1 << MUX3);
+  62:adc.c         ****             break;
+  63:adc.c         ****         case 1://binary 1
+  64:adc.c         ****             ADMUX |=  (1 << MUX0);
+  65:adc.c         ****             ADMUX &= ~(1 << MUX1)
+  66:adc.c         ****                   &  ~(1 << MUX2)
+  67:adc.c         ****                   &  ~(1 << MUX3);
+  68:adc.c         ****             break;
+  69:adc.c         ****         case 2://binary 2
+  70:adc.c         ****             ADMUX &= ~(1 << MUX0);
+  71:adc.c         ****             ADMUX |=  (1 << MUX1);
+  72:adc.c         ****             ADMUX &= ~(1 << MUX2)
+  73:adc.c         ****                   &  ~(1 << MUX3);
+  74:adc.c         ****             break;
+  75:adc.c         ****         case 3: //should have the picture by now
+  76:adc.c         ****             ADMUX |=  (1 << MUX0)
+  77:adc.c         ****                   |   (1 << MUX1);
+  78:adc.c         ****             ADMUX &= ~(1 << MUX2)
+  79:adc.c         ****                   &  ~(1 << MUX3);
+  80:adc.c         ****             break;
+  81:adc.c         ****         case 4:
+  82:adc.c         ****             ADMUX &= ~(1 << MUX0)
+  83:adc.c         ****                   &  ~(1 << MUX1);
+  84:adc.c         ****             ADMUX |=  (1 << MUX2);
+  85:adc.c         ****             ADMUX &= ~(1 << MUX3);
+  86:adc.c         ****             break;
+  87:adc.c         ****         case 5:
+  88:adc.c         ****             ADMUX |=  (1 << MUX0);
+  89:adc.c         ****             ADMUX &= ~(1 << MUX1);
+  90:adc.c         ****             ADMUX |=  (1 << MUX2);
+  91:adc.c         ****             ADMUX &= ~(1 << MUX3);
+  92:adc.c         ****             break;
+  93:adc.c         ****         case 6:
+  94:adc.c         ****             ADMUX &= ~(1 << MUX0);
+  95:adc.c         ****             ADMUX |=  (1 << MUX1)
+  96:adc.c         ****                   |   (1 << MUX2);
+  97:adc.c         ****             ADMUX &= ~(1 << MUX3);
+  98:adc.c         ****             break;
+  99:adc.c         ****         case 7:
+ 100:adc.c         ****             ADMUX |=  (1 << MUX0)
+ 101:adc.c         ****                   |   (1 << MUX1)
+ 102:adc.c         ****                   |   (1 << MUX2);
+ 103:adc.c         ****             ADMUX &= ~(1 << MUX3);
+ 104:adc.c         ****             break;
+ 105:adc.c         ****         case 8:
+ 106:adc.c         ****             ADMUX &= ~(1 << MUX0)
+ 146               		.loc 1 106 0
+ 147 0094 8091 7C00 		lds r24,124
+ 148               	.LVL4:
+  56:adc.c         ****     switch (chan) {
+ 149               		.loc 1 56 0
+ 150 0098 0C94 0000 		jmp __tablejump2__
+ 151               	.LVL5:
+ 152               		.section	.progmem.gcc_sw_table,"a",@progbits
+ 153               		.p2align	1
+ 154               	.L12:
+ 155 0000 0000      		.word gs(.L11)
+ 156 0002 0000      		.word gs(.L13)
+ 157 0004 0000      		.word gs(.L14)
+ 158 0006 0000      		.word gs(.L15)
+ 159 0008 0000      		.word gs(.L16)
+ 160 000a 0000      		.word gs(.L17)
+ 161 000c 0000      		.word gs(.L18)
+ 162 000e 0000      		.word gs(.L19)
+ 163 0010 0000      		.word gs(.L20)
+ 164               		.text
+ 165               	.L16:
+  82:adc.c         ****             ADMUX &= ~(1 << MUX0)
+ 166               		.loc 1 82 0
+ 167 009c 8C7F      		andi r24,lo8(-4)
+ 168               	.L21:
+  89:adc.c         ****             ADMUX &= ~(1 << MUX1);
+ 169               		.loc 1 89 0
+ 170 009e 8093 7C00 		sts 124,r24
+  90:adc.c         ****             ADMUX |=  (1 << MUX2);
+ 171               		.loc 1 90 0
+ 172 00a2 8091 7C00 		lds r24,124
+ 173 00a6 8460      		ori r24,lo8(4)
+ 174 00a8 8093 7C00 		sts 124,r24
+  91:adc.c         ****             ADMUX &= ~(1 << MUX3);
+ 175               		.loc 1 91 0
+ 176 00ac 8091 7C00 		lds r24,124
+ 177 00b0 877F      		andi r24,lo8(-9)
+ 178 00b2 8093 7C00 		sts 124,r24
+ 179               	.L10:
+ 107:adc.c         ****                   &  ~(1 << MUX1)
+ 108:adc.c         ****                   &  ~(1 << MUX2);
+ 109:adc.c         ****             ADMUX |=  (1 << MUX3);
+ 110:adc.c         ****             break;
+ 111:adc.c         ****     }
+ 112:adc.c         ****     //re-enable ADC conversions now that the channel is selected
+ 113:adc.c         ****     ADCSRA |= (1 << ADSC);
+ 180               		.loc 1 113 0
+ 181 00b6 8091 7A00 		lds r24,122
+ 182 00ba 8064      		ori r24,lo8(64)
+ 183 00bc 8093 7A00 		sts 122,r24
+ 184 00c0 0895      		ret
+ 185               	.L19:
+ 100:adc.c         ****             ADMUX |=  (1 << MUX0)
+ 186               		.loc 1 100 0
+ 187 00c2 8760      		ori r24,lo8(7)
+ 188 00c4 8093 7C00 		sts 124,r24
+ 103:adc.c         ****             ADMUX &= ~(1 << MUX3);
+ 189               		.loc 1 103 0
+ 190 00c8 8091 7C00 		lds r24,124
+ 191 00cc 877F      		andi r24,lo8(-9)
+ 192 00ce 8093 7C00 		sts 124,r24
+ 193               		.loc 1 113 0
+ 194 00d2 8091 7A00 		lds r24,122
+ 195 00d6 8064      		ori r24,lo8(64)
+ 196 00d8 8093 7A00 		sts 122,r24
+ 197 00dc 0895      		ret
+ 198               	.L20:
+ 106:adc.c         ****             ADMUX &= ~(1 << MUX0)
+ 199               		.loc 1 106 0
+ 200 00de 887F      		andi r24,lo8(-8)
+ 201 00e0 8093 7C00 		sts 124,r24
+ 109:adc.c         ****             ADMUX |=  (1 << MUX3);
+ 202               		.loc 1 109 0
+ 203 00e4 8091 7C00 		lds r24,124
+ 204 00e8 8860      		ori r24,lo8(8)
+ 205 00ea 8093 7C00 		sts 124,r24
+ 206               		.loc 1 113 0
+ 207 00ee 8091 7A00 		lds r24,122
+ 208 00f2 8064      		ori r24,lo8(64)
+ 209 00f4 8093 7A00 		sts 122,r24
+ 210 00f8 0895      		ret
+ 211               	.L11:
+  58:adc.c         ****             ADMUX &= ~(1 << MUX0)
+ 212               		.loc 1 58 0
+ 213 00fa 807F      		andi r24,lo8(-16)
+ 214 00fc 8093 7C00 		sts 124,r24
+ 215               		.loc 1 113 0
+ 216 0100 8091 7A00 		lds r24,122
+ 217 0104 8064      		ori r24,lo8(64)
+ 218 0106 8093 7A00 		sts 122,r24
+ 219 010a 0895      		ret
+ 220               	.L13:
+  64:adc.c         ****             ADMUX |=  (1 << MUX0);
+ 221               		.loc 1 64 0
+ 222 010c 8160      		ori r24,lo8(1)
+ 223 010e 8093 7C00 		sts 124,r24
+  65:adc.c         ****             ADMUX &= ~(1 << MUX1)
+ 224               		.loc 1 65 0
+ 225 0112 8091 7C00 		lds r24,124
+ 226 0116 817F      		andi r24,lo8(-15)
+ 227 0118 8093 7C00 		sts 124,r24
+ 228               		.loc 1 113 0
+ 229 011c 8091 7A00 		lds r24,122
+ 230 0120 8064      		ori r24,lo8(64)
+ 231 0122 8093 7A00 		sts 122,r24
+ 232 0126 0895      		ret
+ 233               	.L14:
+  70:adc.c         ****             ADMUX &= ~(1 << MUX0);
+ 234               		.loc 1 70 0
+ 235 0128 8E7F      		andi r24,lo8(-2)
+ 236 012a 8093 7C00 		sts 124,r24
+  71:adc.c         ****             ADMUX |=  (1 << MUX1);
+ 237               		.loc 1 71 0
+ 238 012e 8091 7C00 		lds r24,124
+ 239 0132 8260      		ori r24,lo8(2)
+ 240 0134 8093 7C00 		sts 124,r24
+  72:adc.c         ****             ADMUX &= ~(1 << MUX2)
+ 241               		.loc 1 72 0
+ 242 0138 8091 7C00 		lds r24,124
+ 243 013c 837F      		andi r24,lo8(-13)
+ 244 013e 8093 7C00 		sts 124,r24
+ 245               		.loc 1 113 0
+ 246 0142 8091 7A00 		lds r24,122
+ 247 0146 8064      		ori r24,lo8(64)
+ 248 0148 8093 7A00 		sts 122,r24
+ 249 014c 0895      		ret
+ 250               	.L15:
+  76:adc.c         ****             ADMUX |=  (1 << MUX0)
+ 251               		.loc 1 76 0
+ 252 014e 8360      		ori r24,lo8(3)
+ 253 0150 8093 7C00 		sts 124,r24
+  78:adc.c         ****             ADMUX &= ~(1 << MUX2)
+ 254               		.loc 1 78 0
+ 255 0154 8091 7C00 		lds r24,124
+ 256 0158 837F      		andi r24,lo8(-13)
+ 257 015a 8093 7C00 		sts 124,r24
+ 258               		.loc 1 113 0
+ 259 015e 8091 7A00 		lds r24,122
+ 260 0162 8064      		ori r24,lo8(64)
+ 261 0164 8093 7A00 		sts 122,r24
+ 262 0168 0895      		ret
+ 263               	.L17:
+  88:adc.c         ****             ADMUX |=  (1 << MUX0);
+ 264               		.loc 1 88 0
+ 265 016a 8160      		ori r24,lo8(1)
+ 266 016c 8093 7C00 		sts 124,r24
+  89:adc.c         ****             ADMUX &= ~(1 << MUX1);
+ 267               		.loc 1 89 0
+ 268 0170 8091 7C00 		lds r24,124
+ 269 0174 8D7F      		andi r24,lo8(-3)
+ 270 0176 00C0      		rjmp .L21
+ 271               	.L18:
+  94:adc.c         ****             ADMUX &= ~(1 << MUX0);
+ 272               		.loc 1 94 0
+ 273 0178 8E7F      		andi r24,lo8(-2)
+ 274 017a 8093 7C00 		sts 124,r24
+  95:adc.c         ****             ADMUX |=  (1 << MUX1)
+ 275               		.loc 1 95 0
+ 276 017e 8091 7C00 		lds r24,124
+ 277 0182 8660      		ori r24,lo8(6)
+ 278 0184 8093 7C00 		sts 124,r24
+  97:adc.c         ****             ADMUX &= ~(1 << MUX3);
+ 279               		.loc 1 97 0
+ 280 0188 8091 7C00 		lds r24,124
+ 281 018c 877F      		andi r24,lo8(-9)
+ 282 018e 8093 7C00 		sts 124,r24
+ 283               		.loc 1 113 0
+ 284 0192 8091 7A00 		lds r24,122
+ 285 0196 8064      		ori r24,lo8(64)
+ 286 0198 8093 7A00 		sts 122,r24
+ 287 019c 0895      		ret
+ 288               		.cfi_endproc
+ 289               	.LFE10:
+ 291               		.comm	led,1,1
+ 292               		.comm	once,3,1
+ 293               		.comm	dig_count,3,1
+ 294               		.comm	read_spot,2,1
+ 295               		.comm	input_buffer,700,1
+ 296               		.comm	mcp_data,6,1
+ 297               	.Letext0:
+ 298               		.file 2 "/usr/avr/include/stdint.h"
+ 299               		.file 3 "i2c.h"
+ 300               		.file 4 "uart.h"
+ 301               		.file 5 "button.h"
+ 302               		.file 6 "global.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 adc.c
+     /tmp/ccn6xk53.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccn6xk53.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccn6xk53.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccn6xk53.s:5      *ABS*:000000000000003b __RAMPZ__
+     /tmp/ccn6xk53.s:6      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccn6xk53.s:7      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccn6xk53.s:13     .text:0000000000000000 __vector_29
+     /tmp/ccn6xk53.s:49     .text:0000000000000014 adc_start
+     /tmp/ccn6xk53.s:105    .text:0000000000000070 adc_stop
+     /tmp/ccn6xk53.s:125    .text:000000000000007c adc_change
+                            *COM*:0000000000000001 led
+                            *COM*:0000000000000003 once
+                            *COM*:0000000000000003 dig_count
+                            *COM*:0000000000000002 read_spot
+                            *COM*:00000000000002bc input_buffer
+                            *COM*:0000000000000006 mcp_data
+
+UNDEFINED SYMBOLS
+uart_sendstr
+__tablejump2__
+__do_copy_data
+__do_clear_bss

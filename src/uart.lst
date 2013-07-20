@@ -1,0 +1,430 @@
+   1               		.file	"uart.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               	.global	uart_sendint
+  13               	uart_sendint:
+  14               	.LFB8:
+  15               		.file 1 "uart.c"
+   1:uart.c        **** //-------------------------------------------
+   2:uart.c        **** /*
+   3:uart.c        **** UART.c
+   4:uart.c        **** 2011 - Josh Ashby
+   5:uart.c        **** joshuaashby@joshashby.com
+   6:uart.c        **** http://joshashby.com
+   7:uart.c        **** http://github.com/JoshAshby
+   8:uart.c        **** freenode/#linuxandsci - JoshAshby
+   9:uart.c        **** */
+  10:uart.c        **** //-------------------------------------------
+  11:uart.c        **** #include "global.h"
+  12:uart.c        **** 
+  13:uart.c        **** //Got through and set up the registers for UART
+  14:uart.c        **** void uart_start(void) {
+  15:uart.c        ****     UCSR0B |= (1 << RXEN0) | (1 << TXEN0); //transmit side of hardware
+  16:uart.c        ****     UCSR0C |= (1 << UCSZ00) | (1 << UCSZ01); //receive side of hardware
+  17:uart.c        **** 
+  18:uart.c        ****     UBRR0L = BAUD_PRESCALE; //set the baud to 9600, have to split it into the two registers
+  19:uart.c        ****     UBRR0H = (BAUD_PRESCALE >> 8); //high end of baud register
+  20:uart.c        **** 
+  21:uart.c        ****     UCSR0B |= (1 << RXCIE0); //recieve data interrupt, makes sure we don't loose data
+  22:uart.c        **** 
+  23:uart.c        ****     #if DEBUG
+  24:uart.c        ****             uart_sendstr("0x04 - UART is up...");
+  25:uart.c        ****     #endif
+  26:uart.c        **** }
+  27:uart.c        **** 
+  28:uart.c        **** void uart_sendint(uint8_t data) {
+  16               		.loc 1 28 0
+  17               		.cfi_startproc
+  18               	/* prologue: function */
+  19               	/* frame size = 0 */
+  20               	/* stack size = 0 */
+  21               	.L__stack_usage = 0
+  22               	.LVL0:
+  23               	.L3:
+  29:uart.c        ****     /*
+  30:uart.c        ****     Use this to send a 8bit long piece of data
+  31:uart.c        ****     */
+  32:uart.c        ****     while ((UCSR0A & (1 << UDRE0)) == 0);//make sure the data register is cleared
+  24               		.loc 1 32 0 discriminator 1
+  25 0000 9091 C000 		lds r25,192
+  26 0004 95FF      		sbrs r25,5
+  27 0006 00C0      		rjmp .L3
+  33:uart.c        ****     UDR0 = data; //send the data
+  28               		.loc 1 33 0
+  29 0008 8093 C600 		sts 198,r24
+  30               	.LVL1:
+  31               	.L5:
+  34:uart.c        ****     while ((UCSR0A & (1 << UDRE0)) == 0);//make sure the data register is cleared
+  32               		.loc 1 34 0 discriminator 1
+  33 000c 8091 C000 		lds r24,192
+  34 0010 85FF      		sbrs r24,5
+  35 0012 00C0      		rjmp .L5
+  35:uart.c        ****     UDR0 = '\n';//send a new line just to be sure
+  36               		.loc 1 35 0
+  37 0014 8AE0      		ldi r24,lo8(10)
+  38 0016 8093 C600 		sts 198,r24
+  39               	.LVL2:
+  40 001a 0895      		ret
+  41               		.cfi_endproc
+  42               	.LFE8:
+  44               	.global	uart_sendint16
+  46               	uart_sendint16:
+  47               	.LFB9:
+  36:uart.c        **** }
+  37:uart.c        **** 
+  38:uart.c        **** void uart_sendint16(uint16_t data) {
+  48               		.loc 1 38 0
+  49               		.cfi_startproc
+  50               	/* prologue: function */
+  51               	/* frame size = 0 */
+  52               	/* stack size = 0 */
+  53               	.L__stack_usage = 0
+  54               	.LVL3:
+  55               	.L9:
+  39:uart.c        ****     /*
+  40:uart.c        ****     Use this to send a 16bit long piece of data
+  41:uart.c        ****     */
+  42:uart.c        ****     while ((UCSR0A & (1 << UDRE0)) == 0);//make sure the data register is cleared
+  56               		.loc 1 42 0 discriminator 1
+  57 001c 2091 C000 		lds r18,192
+  58 0020 25FF      		sbrs r18,5
+  59 0022 00C0      		rjmp .L9
+  43:uart.c        ****     UDR0 = data;//send the lower bits
+  60               		.loc 1 43 0
+  61 0024 8093 C600 		sts 198,r24
+  62               	.LVL4:
+  63               	.L11:
+  44:uart.c        ****     while ((UCSR0A & (1 << UDRE0)) == 0);//make sure the data register is cleared
+  64               		.loc 1 44 0 discriminator 1
+  65 0028 8091 C000 		lds r24,192
+  66 002c 85FF      		sbrs r24,5
+  67 002e 00C0      		rjmp .L11
+  45:uart.c        ****     UDR0 = (data >> 8); //send the higher bits
+  68               		.loc 1 45 0
+  69 0030 9093 C600 		sts 198,r25
+  70               	.L13:
+  46:uart.c        ****     while ((UCSR0A & (1 << UDRE0)) == 0);//make sure the data register is cleared
+  71               		.loc 1 46 0 discriminator 1
+  72 0034 8091 C000 		lds r24,192
+  73 0038 85FF      		sbrs r24,5
+  74 003a 00C0      		rjmp .L13
+  47:uart.c        ****     UDR0 = '\n';//send a new line just to be sure
+  75               		.loc 1 47 0
+  76 003c 8AE0      		ldi r24,lo8(10)
+  77 003e 8093 C600 		sts 198,r24
+  78 0042 0895      		ret
+  79               		.cfi_endproc
+  80               	.LFE9:
+  82               	.global	uart_sendstr
+  84               	uart_sendstr:
+  85               	.LFB10:
+  48:uart.c        **** }
+  49:uart.c        **** 
+  50:uart.c        **** void uart_sendstr(char *data) {
+  86               		.loc 1 50 0
+  87               		.cfi_startproc
+  88               	.LVL5:
+  89               	/* prologue: function */
+  90               	/* frame size = 0 */
+  91               	/* stack size = 0 */
+  92               	.L__stack_usage = 0
+  51:uart.c        ****     /*
+  52:uart.c        ****     Use this to send a string, it will split it up into individual parts
+  53:uart.c        ****     send those parts, and then send the new line code
+  54:uart.c        ****     */
+  55:uart.c        ****     while (*data) {
+  93               		.loc 1 55 0
+  94 0044 FC01      		movw r30,r24
+  95 0046 2081      		ld r18,Z
+  96 0048 2223      		tst r18
+  97 004a 01F0      		breq .L16
+  98 004c 3196      		adiw r30,1
+  99               	.LVL6:
+ 100               	.L18:
+  56:uart.c        ****         while ((UCSR0A & (1 << UDRE0)) == 0);//make sure the data register is cleared
+ 101               		.loc 1 56 0 discriminator 1
+ 102 004e 8091 C000 		lds r24,192
+ 103 0052 85FF      		sbrs r24,5
+ 104 0054 00C0      		rjmp .L18
+  57:uart.c        ****         UDR0 = *data; //goes through and splits the string into individual bits, sends them
+ 105               		.loc 1 57 0
+ 106 0056 2093 C600 		sts 198,r18
+ 107               	.LVL7:
+  55:uart.c        ****     while (*data) {
+ 108               		.loc 1 55 0
+ 109 005a 2191      		ld r18,Z+
+ 110               	.LVL8:
+ 111 005c 2111      		cpse r18,__zero_reg__
+ 112 005e 00C0      		rjmp .L18
+ 113               	.LVL9:
+ 114               	.L16:
+  58:uart.c        ****         data += 1;//go to new bit in string
+  59:uart.c        ****     }
+  60:uart.c        ****     while ((UCSR0A & (1 << UDRE0)) == 0);//make sure the data register is cleared
+ 115               		.loc 1 60 0 discriminator 1
+ 116 0060 8091 C000 		lds r24,192
+ 117 0064 85FF      		sbrs r24,5
+ 118 0066 00C0      		rjmp .L16
+  61:uart.c        ****     UDR0 = '\n';//send a new line just to be sure
+ 119               		.loc 1 61 0
+ 120 0068 8AE0      		ldi r24,lo8(10)
+ 121 006a 8093 C600 		sts 198,r24
+ 122 006e 0895      		ret
+ 123               		.cfi_endproc
+ 124               	.LFE10:
+ 126               		.section	.rodata.str1.1,"aMS",@progbits,1
+ 127               	.LC0:
+ 128 0000 3078 3034 		.string	"0x04 - UART is up..."
+ 128      202D 2055 
+ 128      4152 5420 
+ 128      6973 2075 
+ 128      702E 2E2E 
+ 129               		.text
+ 130               	.global	uart_start
+ 132               	uart_start:
+ 133               	.LFB7:
+  14:uart.c        **** void uart_start(void) {
+ 134               		.loc 1 14 0
+ 135               		.cfi_startproc
+ 136               	/* prologue: function */
+ 137               	/* frame size = 0 */
+ 138               	/* stack size = 0 */
+ 139               	.L__stack_usage = 0
+  15:uart.c        ****     UCSR0B |= (1 << RXEN0) | (1 << TXEN0); //transmit side of hardware
+ 140               		.loc 1 15 0
+ 141 0070 E1EC      		ldi r30,lo8(-63)
+ 142 0072 F0E0      		ldi r31,0
+ 143 0074 8081      		ld r24,Z
+ 144 0076 8861      		ori r24,lo8(24)
+ 145 0078 8083      		st Z,r24
+  16:uart.c        ****     UCSR0C |= (1 << UCSZ00) | (1 << UCSZ01); //receive side of hardware
+ 146               		.loc 1 16 0
+ 147 007a A2EC      		ldi r26,lo8(-62)
+ 148 007c B0E0      		ldi r27,0
+ 149 007e 8C91      		ld r24,X
+ 150 0080 8660      		ori r24,lo8(6)
+ 151 0082 8C93      		st X,r24
+  18:uart.c        ****     UBRR0L = BAUD_PRESCALE; //set the baud to 9600, have to split it into the two registers
+ 152               		.loc 1 18 0
+ 153 0084 83E3      		ldi r24,lo8(51)
+ 154 0086 8093 C400 		sts 196,r24
+  19:uart.c        ****     UBRR0H = (BAUD_PRESCALE >> 8); //high end of baud register
+ 155               		.loc 1 19 0
+ 156 008a 1092 C500 		sts 197,__zero_reg__
+  21:uart.c        ****     UCSR0B |= (1 << RXCIE0); //recieve data interrupt, makes sure we don't loose data
+ 157               		.loc 1 21 0
+ 158 008e 8081      		ld r24,Z
+ 159 0090 8068      		ori r24,lo8(-128)
+ 160 0092 8083      		st Z,r24
+  24:uart.c        ****             uart_sendstr("0x04 - UART is up...");
+ 161               		.loc 1 24 0
+ 162 0094 80E0      		ldi r24,lo8(.LC0)
+ 163 0096 90E0      		ldi r25,hi8(.LC0)
+ 164 0098 0C94 0000 		jmp uart_sendstr
+ 165               	.LVL10:
+ 166               		.cfi_endproc
+ 167               	.LFE7:
+ 169               	.global	uart_get
+ 171               	uart_get:
+ 172               	.LFB11:
+  62:uart.c        **** }
+  63:uart.c        **** 
+  64:uart.c        **** uint8_t uart_get(void) {
+ 173               		.loc 1 64 0
+ 174               		.cfi_startproc
+ 175               	/* prologue: function */
+ 176               	/* frame size = 0 */
+ 177               	/* stack size = 0 */
+ 178               	.L__stack_usage = 0
+  65:uart.c        ****     /*
+  66:uart.c        ****     gets data from the register that the interrupt stored it
+  67:uart.c        ****     in coming data into, returning it to the calling function as 8 bit long data
+  68:uart.c        ****     */
+  69:uart.c        ****     UCSR0B |= (1<<RXCIE0);
+ 179               		.loc 1 69 0
+ 180 009c 8091 C100 		lds r24,193
+ 181 00a0 8068      		ori r24,lo8(-128)
+ 182 00a2 8093 C100 		sts 193,r24
+  70:uart.c        **** 
+  71:uart.c        **** //    sei();
+  72:uart.c        **** //    sleep_mode();
+  73:uart.c        **** //    cli();
+  74:uart.c        ****     uint8_t b;
+  75:uart.c        ****     if(read_spot == 0)
+ 183               		.loc 1 75 0
+ 184 00a6 8091 0000 		lds r24,read_spot
+ 185 00aa 9091 0000 		lds r25,read_spot+1
+ 186 00ae 0097      		sbiw r24,0
+ 187 00b0 01F4      		brne .L27
+  76:uart.c        ****         b = input_buffer[sizeof(input_buffer) - 1];
+ 188               		.loc 1 76 0
+ 189 00b2 8091 0000 		lds r24,input_buffer+699
+ 190               	.LVL11:
+  77:uart.c        ****     else
+  78:uart.c        ****         b = input_buffer[read_spot - 1];
+  79:uart.c        ****     if(b == '\r')
+ 191               		.loc 1 79 0
+ 192 00b6 8D30      		cpi r24,lo8(13)
+ 193 00b8 01F0      		breq .L31
+ 194               	.L29:
+  80:uart.c        ****         b = '\n';
+  81:uart.c        ****     return b;
+  82:uart.c        **** }
+ 195               		.loc 1 82 0
+ 196 00ba 0895      		ret
+ 197               	.LVL12:
+ 198               	.L27:
+  78:uart.c        ****         b = input_buffer[read_spot - 1];
+ 199               		.loc 1 78 0
+ 200 00bc FC01      		movw r30,r24
+ 201 00be E050      		subi r30,lo8(-(input_buffer-1))
+ 202 00c0 F040      		sbci r31,hi8(-(input_buffer-1))
+ 203 00c2 8081      		ld r24,Z
+ 204               	.LVL13:
+  79:uart.c        ****     if(b == '\r')
+ 205               		.loc 1 79 0
+ 206 00c4 8D30      		cpi r24,lo8(13)
+ 207 00c6 01F4      		brne .L29
+ 208               	.L31:
+  80:uart.c        ****         b = '\n';
+ 209               		.loc 1 80 0
+ 210 00c8 8AE0      		ldi r24,lo8(10)
+ 211               	.LVL14:
+ 212               		.loc 1 82 0
+ 213 00ca 0895      		ret
+ 214               		.cfi_endproc
+ 215               	.LFE11:
+ 217               	.global	SIG_USART_RECV
+ 219               	SIG_USART_RECV:
+ 220               	.LFB12:
+  83:uart.c        **** 
+  84:uart.c        **** ISR(SIG_USART_RECV) {//sets up the interrupt to recieve any data coming in
+ 221               		.loc 1 84 0
+ 222               		.cfi_startproc
+ 223 00cc 1F92      		push r1
+ 224               	.LCFI0:
+ 225               		.cfi_def_cfa_offset 4
+ 226               		.cfi_offset 1, -3
+ 227 00ce 0F92      		push r0
+ 228               	.LCFI1:
+ 229               		.cfi_def_cfa_offset 5
+ 230               		.cfi_offset 0, -4
+ 231 00d0 0FB6      		in r0,__SREG__
+ 232 00d2 0F92      		push r0
+ 233 00d4 1124      		clr __zero_reg__
+ 234 00d6 0BB6      		in r0,__RAMPZ__
+ 235 00d8 0F92      		push r0
+ 236 00da 2F93      		push r18
+ 237               	.LCFI2:
+ 238               		.cfi_def_cfa_offset 6
+ 239               		.cfi_offset 18, -5
+ 240 00dc 8F93      		push r24
+ 241               	.LCFI3:
+ 242               		.cfi_def_cfa_offset 7
+ 243               		.cfi_offset 24, -6
+ 244 00de 9F93      		push r25
+ 245               	.LCFI4:
+ 246               		.cfi_def_cfa_offset 8
+ 247               		.cfi_offset 25, -7
+ 248 00e0 EF93      		push r30
+ 249               	.LCFI5:
+ 250               		.cfi_def_cfa_offset 9
+ 251               		.cfi_offset 30, -8
+ 252 00e2 FF93      		push r31
+ 253               	.LCFI6:
+ 254               		.cfi_def_cfa_offset 10
+ 255               		.cfi_offset 31, -9
+ 256               	/* prologue: Signal */
+ 257               	/* frame size = 0 */
+ 258               	/* stack size = 9 */
+ 259               	.L__stack_usage = 9
+  85:uart.c        ****     input_buffer[read_spot] = UDR0;
+ 260               		.loc 1 85 0
+ 261 00e4 8091 0000 		lds r24,read_spot
+ 262 00e8 9091 0000 		lds r25,read_spot+1
+ 263 00ec 2091 C600 		lds r18,198
+ 264 00f0 FC01      		movw r30,r24
+ 265 00f2 E050      		subi r30,lo8(-(input_buffer))
+ 266 00f4 F040      		sbci r31,hi8(-(input_buffer))
+ 267 00f6 2083      		st Z,r18
+  86:uart.c        ****     read_spot++;//and "exports" if you will the data to a variable outside of the register
+ 268               		.loc 1 86 0
+ 269 00f8 0196      		adiw r24,1
+  87:uart.c        ****     //until the main program has time to read it. makes sure data isn't lost as much
+  88:uart.c        ****     if(read_spot == BUFF_LEN) read_spot = 0;
+ 270               		.loc 1 88 0
+ 271 00fa 8C3B      		cpi r24,-68
+ 272 00fc 22E0      		ldi r18,2
+ 273 00fe 9207      		cpc r25,r18
+ 274 0100 01F0      		breq .L33
+  86:uart.c        ****     read_spot++;//and "exports" if you will the data to a variable outside of the register
+ 275               		.loc 1 86 0
+ 276 0102 9093 0000 		sts read_spot+1,r25
+ 277 0106 8093 0000 		sts read_spot,r24
+ 278               	.L32:
+ 279               	/* epilogue start */
+  89:uart.c        **** }
+ 280               		.loc 1 89 0
+ 281 010a FF91      		pop r31
+ 282 010c EF91      		pop r30
+ 283 010e 9F91      		pop r25
+ 284 0110 8F91      		pop r24
+ 285 0112 2F91      		pop r18
+ 286 0114 0F90      		pop r0
+ 287 0116 0BBE      		out __RAMPZ__,r0
+ 288 0118 0F90      		pop r0
+ 289 011a 0FBE      		out __SREG__,r0
+ 290 011c 0F90      		pop r0
+ 291 011e 1F90      		pop r1
+ 292 0120 1895      		reti
+ 293               	.L33:
+  88:uart.c        ****     if(read_spot == BUFF_LEN) read_spot = 0;
+ 294               		.loc 1 88 0 discriminator 1
+ 295 0122 1092 0000 		sts read_spot+1,__zero_reg__
+ 296 0126 1092 0000 		sts read_spot,__zero_reg__
+ 297 012a 00C0      		rjmp .L32
+ 298               		.cfi_endproc
+ 299               	.LFE12:
+ 301               		.comm	led,1,1
+ 302               		.comm	once,3,1
+ 303               		.comm	dig_count,3,1
+ 304               		.comm	read_spot,2,1
+ 305               		.comm	input_buffer,700,1
+ 306               		.comm	mcp_data,6,1
+ 307               	.Letext0:
+ 308               		.file 2 "/usr/avr/include/stdint.h"
+ 309               		.file 3 "i2c.h"
+ 310               		.file 4 "uart.h"
+ 311               		.file 5 "button.h"
+ 312               		.file 6 "global.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 uart.c
+     /tmp/cclcpUIr.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cclcpUIr.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cclcpUIr.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cclcpUIr.s:5      *ABS*:000000000000003b __RAMPZ__
+     /tmp/cclcpUIr.s:6      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cclcpUIr.s:7      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cclcpUIr.s:13     .text:0000000000000000 uart_sendint
+     /tmp/cclcpUIr.s:46     .text:000000000000001c uart_sendint16
+     /tmp/cclcpUIr.s:84     .text:0000000000000044 uart_sendstr
+     /tmp/cclcpUIr.s:132    .text:0000000000000070 uart_start
+     /tmp/cclcpUIr.s:171    .text:000000000000009c uart_get
+                            *COM*:0000000000000002 read_spot
+                            *COM*:00000000000002bc input_buffer
+     /tmp/cclcpUIr.s:219    .text:00000000000000cc SIG_USART_RECV
+                            *COM*:0000000000000001 led
+                            *COM*:0000000000000003 once
+                            *COM*:0000000000000003 dig_count
+                            *COM*:0000000000000006 mcp_data
+
+UNDEFINED SYMBOLS
+__do_copy_data
+__do_clear_bss

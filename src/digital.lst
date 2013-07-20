@@ -1,0 +1,213 @@
+   1               		.file	"digital.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               	.global	init_out
+  13               	init_out:
+  14               	.LFB7:
+  15               		.file 1 "digital.c"
+   1:digital.c     **** //-------------------------------------------
+   2:digital.c     **** /*
+   3:digital.c     **** DIGITAL.c
+   4:digital.c     **** 2011 - Josh Ashby
+   5:digital.c     **** joshuaashby@joshashby.com
+   6:digital.c     **** http://joshashby.com
+   7:digital.c     **** http://github.com/JoshAshby
+   8:digital.c     **** freenode/#linuxandsci - JoshAshby
+   9:digital.c     **** */
+  10:digital.c     **** //-------------------------------------------
+  11:digital.c     **** #include "global.h"
+  12:digital.c     **** 
+  13:digital.c     **** void init_out(char port, int pin) {
+  16               		.loc 1 13 0
+  17               		.cfi_startproc
+  18               	.LVL0:
+  19               	/* prologue: function */
+  20               	/* frame size = 0 */
+  21               	/* stack size = 0 */
+  22               	.L__stack_usage = 0
+  14:digital.c     ****     switch (port) { //switch determines if which port it is
+  23               		.loc 1 14 0
+  24 0000 8234      		cpi r24,lo8(66)
+  25 0002 01F0      		breq .L3
+  26 0004 8434      		cpi r24,lo8(68)
+  27 0006 01F4      		brne .L1
+  15:digital.c     ****         case 'D':
+  16:digital.c     ****             DDRD |= (1<<pin); //change the pin to output
+  28               		.loc 1 16 0
+  29 0008 2AB1      		in r18,0xa
+  30 000a 81E0      		ldi r24,lo8(1)
+  31 000c 90E0      		ldi r25,0
+  32               	.LVL1:
+  33 000e 062E      		mov r0,r22
+  34 0010 00C0      		rjmp 2f
+  35               		1:
+  36 0012 880F      		lsl r24
+  37               		2:
+  38 0014 0A94      		dec r0
+  39 0016 02F4      		brpl 1b
+  40 0018 282B      		or r18,r24
+  41 001a 2AB9      		out 0xa,r18
+  17:digital.c     ****             break;
+  42               		.loc 1 17 0
+  43 001c 0895      		ret
+  44               	.LVL2:
+  45               	.L3:
+  18:digital.c     ****         case 'B':
+  19:digital.c     ****             DDRB |= (1<<pin); //change pin to output
+  46               		.loc 1 19 0
+  47 001e 24B1      		in r18,0x4
+  48 0020 81E0      		ldi r24,lo8(1)
+  49 0022 90E0      		ldi r25,0
+  50               	.LVL3:
+  51 0024 062E      		mov r0,r22
+  52 0026 00C0      		rjmp 2f
+  53               		1:
+  54 0028 880F      		lsl r24
+  55               		2:
+  56 002a 0A94      		dec r0
+  57 002c 02F4      		brpl 1b
+  58 002e 282B      		or r18,r24
+  59 0030 24B9      		out 0x4,r18
+  60               	.L1:
+  61 0032 0895      		ret
+  62               		.cfi_endproc
+  63               	.LFE7:
+  65               	.global	out
+  67               	out:
+  68               	.LFB8:
+  20:digital.c     ****             break;
+  21:digital.c     ****     }
+  22:digital.c     **** }
+  23:digital.c     **** 
+  24:digital.c     **** void out(char port, int pin, _Bool value) {
+  69               		.loc 1 24 0
+  70               		.cfi_startproc
+  71               	.LVL4:
+  72               	/* prologue: function */
+  73               	/* frame size = 0 */
+  74               	/* stack size = 0 */
+  75               	.L__stack_usage = 0
+  25:digital.c     ****     /*
+  26:digital.c     ****     Change the state of a pin on given port
+  27:digital.c     ****     simply pass the Port as either D or B (make sure to enclose it in single
+  28:digital.c     ****     quotes like so: 'D')
+  29:digital.c     ****     The pin number you would like to change state of,
+  30:digital.c     ****     and either a 0 to sink current or 1 to source it on that pin
+  31:digital.c     ****     */
+  32:digital.c     ****     switch (port) { //switch determines if which port it is
+  76               		.loc 1 32 0
+  77 0034 8234      		cpi r24,lo8(66)
+  78 0036 01F0      		breq .L8
+  79 0038 8434      		cpi r24,lo8(68)
+  80 003a 01F4      		brne .L6
+  33:digital.c     ****         case 'D':
+  34:digital.c     **** //            DDRD |= (1<<pin); //change the pin to output
+  35:digital.c     ****             if(value == 1) { //sink or source current
+  36:digital.c     ****                 PORTD |= (1<<pin);
+  81               		.loc 1 36 0
+  82 003c 2BB1      		in r18,0xb
+  83 003e 81E0      		ldi r24,lo8(1)
+  84 0040 90E0      		ldi r25,0
+  85               	.LVL5:
+  86 0042 062E      		mov r0,r22
+  87 0044 00C0      		rjmp 2f
+  88               		1:
+  89 0046 880F      		lsl r24
+  90               		2:
+  91 0048 0A94      		dec r0
+  92 004a 02F4      		brpl 1b
+  35:digital.c     ****             if(value == 1) { //sink or source current
+  93               		.loc 1 35 0
+  94 004c 4423      		tst r20
+  95 004e 01F0      		breq .L10
+  96               		.loc 1 36 0
+  97 0050 282B      		or r18,r24
+  98 0052 2BB9      		out 0xb,r18
+  99 0054 0895      		ret
+ 100               	.LVL6:
+ 101               	.L8:
+  37:digital.c     ****             } else {
+  38:digital.c     ****                 PORTD &= ~(1<<pin);
+  39:digital.c     ****             }
+  40:digital.c     ****             break;
+  41:digital.c     ****         case 'B':
+  42:digital.c     **** //            DDRB |= (1<<pin); //change pin to output
+  43:digital.c     ****             if(value == 1) { //sink or source current
+  44:digital.c     ****                 PORTB |= (1<<pin);
+ 102               		.loc 1 44 0
+ 103 0056 25B1      		in r18,0x5
+ 104 0058 81E0      		ldi r24,lo8(1)
+ 105 005a 90E0      		ldi r25,0
+ 106               	.LVL7:
+ 107 005c 062E      		mov r0,r22
+ 108 005e 00C0      		rjmp 2f
+ 109               		1:
+ 110 0060 880F      		lsl r24
+ 111               		2:
+ 112 0062 0A94      		dec r0
+ 113 0064 02F4      		brpl 1b
+  43:digital.c     ****             if(value == 1) { //sink or source current
+ 114               		.loc 1 43 0
+ 115 0066 4111      		cpse r20,__zero_reg__
+ 116 0068 00C0      		rjmp .L12
+  45:digital.c     ****             } else {
+  46:digital.c     ****                 PORTB &= ~(1<<pin);
+ 117               		.loc 1 46 0
+ 118 006a 8095      		com r24
+ 119 006c 8223      		and r24,r18
+ 120 006e 85B9      		out 0x5,r24
+ 121               	.L6:
+ 122 0070 0895      		ret
+ 123               	.L10:
+  38:digital.c     ****                 PORTD &= ~(1<<pin);
+ 124               		.loc 1 38 0
+ 125 0072 8095      		com r24
+ 126 0074 8223      		and r24,r18
+ 127 0076 8BB9      		out 0xb,r24
+ 128 0078 0895      		ret
+ 129               	.L12:
+  44:digital.c     ****                 PORTB |= (1<<pin);
+ 130               		.loc 1 44 0
+ 131 007a 282B      		or r18,r24
+ 132 007c 25B9      		out 0x5,r18
+ 133 007e 0895      		ret
+ 134               		.cfi_endproc
+ 135               	.LFE8:
+ 137               		.comm	led,1,1
+ 138               		.comm	once,3,1
+ 139               		.comm	dig_count,3,1
+ 140               		.comm	read_spot,2,1
+ 141               		.comm	input_buffer,700,1
+ 142               		.comm	mcp_data,6,1
+ 143               	.Letext0:
+ 144               		.file 2 "/usr/avr/include/stdint.h"
+ 145               		.file 3 "i2c.h"
+ 146               		.file 4 "uart.h"
+ 147               		.file 5 "button.h"
+ 148               		.file 6 "global.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 digital.c
+     /tmp/ccbAGmC5.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccbAGmC5.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccbAGmC5.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccbAGmC5.s:5      *ABS*:000000000000003b __RAMPZ__
+     /tmp/ccbAGmC5.s:6      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccbAGmC5.s:7      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccbAGmC5.s:13     .text:0000000000000000 init_out
+     /tmp/ccbAGmC5.s:67     .text:0000000000000034 out
+                            *COM*:0000000000000001 led
+                            *COM*:0000000000000003 once
+                            *COM*:0000000000000003 dig_count
+                            *COM*:0000000000000002 read_spot
+                            *COM*:00000000000002bc input_buffer
+                            *COM*:0000000000000006 mcp_data
+
+UNDEFINED SYMBOLS
+__do_clear_bss

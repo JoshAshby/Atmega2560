@@ -1,0 +1,748 @@
+   1               		.file	"button.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               		.section	.rodata.str1.1,"aMS",@progbits,1
+  12               	.LC0:
+  13 0000 3078 3833 		.string	"0x83 - Button 3 pressed"
+  13      202D 2042 
+  13      7574 746F 
+  13      6E20 3320 
+  13      7072 6573 
+  14               		.text
+  16               	button.part.0:
+  17               	.LFB14:
+  18               		.file 1 "button.c"
+   1:button.c      **** //-------------------------------------------
+   2:button.c      **** /*
+   3:button.c      **** BUTTON.c
+   4:button.c      **** 2011 - Josh Ashby
+   5:button.c      **** joshuaashby@joshashby.com
+   6:button.c      **** http://joshashby.com
+   7:button.c      **** http://github.com/JoshAshby
+   8:button.c      **** freenode/#linuxandsci - JoshAshby
+   9:button.c      **** */
+  10:button.c      **** //-------------------------------------------
+  11:button.c      **** #include "global.h"
+  12:button.c      **** 
+  13:button.c      **** //What to run only once and once only when button 1 has been pressed.
+  14:button.c      **** void button1_once(void) {
+  15:button.c      ****     #if DEBUG
+  16:button.c      ****             uart_sendstr("0x81 - Button 1 pressed");
+  17:button.c      ****     #endif
+  18:button.c      ****     if(led <= 250) {
+  19:button.c      ****         led += 5;
+  20:button.c      ****     }
+  21:button.c      ****     return;
+  22:button.c      **** }
+  23:button.c      **** 
+  24:button.c      **** void button2_once(void) {
+  25:button.c      ****     #if DEBUG
+  26:button.c      ****             uart_sendstr("0x82 - Button 2 pressed");
+  27:button.c      ****     #endif
+  28:button.c      ****     if(led >= 5) {
+  29:button.c      ****         led -= 5;
+  30:button.c      ****     }
+  31:button.c      ****     return;
+  32:button.c      **** }
+  33:button.c      **** 
+  34:button.c      **** void button3_once(void) {
+  35:button.c      ****     #if DEBUG
+  36:button.c      ****             uart_sendstr("0x83 - Button 3 pressed");
+  37:button.c      ****     #endif
+  38:button.c      ****     return;
+  39:button.c      **** }
+  40:button.c      **** 
+  41:button.c      **** void button(int which, int what) {
+  19               		.loc 1 41 0
+  20               		.cfi_startproc
+  21               	.LVL0:
+  22 0000 CF93      		push r28
+  23               	.LCFI0:
+  24               		.cfi_def_cfa_offset 4
+  25               		.cfi_offset 28, -3
+  26 0002 DF93      		push r29
+  27               	.LCFI1:
+  28               		.cfi_def_cfa_offset 5
+  29               		.cfi_offset 29, -4
+  30               	/* prologue: function */
+  31               	/* frame size = 0 */
+  32               	/* stack size = 2 */
+  33               	.L__stack_usage = 2
+  34               	.LVL1:
+  42:button.c      ****     if(which == 0) {
+  43:button.c      ****         if(what == 1) {
+  44:button.c      ****             //Runs once once per button press and no more.
+  45:button.c      ****             if(once[which] == 1) {
+  46:button.c      ****                 return;
+  47:button.c      ****             } else {
+  48:button.c      ****                 button1_once();
+  49:button.c      ****             }
+  50:button.c      ****             once[which] = 1;
+  51:button.c      ****             return;
+  52:button.c      ****         } else {
+  53:button.c      ****             once[which] = 0;
+  54:button.c      ****             return;
+  55:button.c      ****         }
+  56:button.c      ****     }
+  57:button.c      ****     if(which == 1) {
+  58:button.c      ****         if(what == 1) {
+  59:button.c      ****             //Runs once once per button press and no more.
+  60:button.c      ****             if(once[which] == 1) {
+  61:button.c      ****                 return;
+  62:button.c      ****             } else {
+  63:button.c      ****                 button2_once();
+  64:button.c      ****             }
+  65:button.c      ****             once[which] = 1;
+  66:button.c      ****             return;
+  67:button.c      ****         } else {
+  68:button.c      ****             once[which] = 0;
+  69:button.c      ****             return;
+  70:button.c      ****         }
+  71:button.c      ****     }
+  72:button.c      ****     if(which == 2) {
+  73:button.c      ****         if(what == 1) {
+  74:button.c      ****             //Runs once once per button press and no more.
+  75:button.c      ****             if(once[which] == 1) {
+  35               		.loc 1 75 0
+  36 0004 EC01      		movw r28,r24
+  37 0006 C050      		subi r28,lo8(-(once))
+  38 0008 D040      		sbci r29,hi8(-(once))
+  39 000a 8881      		ld r24,Y
+  40               	.LVL2:
+  41 000c 8130      		cpi r24,lo8(1)
+  42 000e 01F0      		breq .L1
+  43               	.LBB6:
+  44               	.LBB7:
+  36:button.c      ****             uart_sendstr("0x83 - Button 3 pressed");
+  45               		.loc 1 36 0
+  46 0010 80E0      		ldi r24,lo8(.LC0)
+  47 0012 90E0      		ldi r25,hi8(.LC0)
+  48 0014 0E94 0000 		call uart_sendstr
+  49               	.LVL3:
+  50               	.LBE7:
+  51               	.LBE6:
+  76:button.c      ****                 return;
+  77:button.c      ****             } else {
+  78:button.c      ****                 button3_once();
+  79:button.c      ****             }
+  80:button.c      ****             once[which] = 1;
+  52               		.loc 1 80 0
+  53 0018 81E0      		ldi r24,lo8(1)
+  54 001a 8883      		st Y,r24
+  55               	.L1:
+  56               	/* epilogue start */
+  81:button.c      ****             return;
+  82:button.c      ****         } else {
+  83:button.c      ****             once[which] = 0;
+  84:button.c      ****             return;
+  85:button.c      ****         }
+  86:button.c      ****     }
+  87:button.c      ****     return;
+  88:button.c      **** }
+  57               		.loc 1 88 0
+  58 001c DF91      		pop r29
+  59 001e CF91      		pop r28
+  60               	.LVL4:
+  61 0020 0895      		ret
+  62               		.cfi_endproc
+  63               	.LFE14:
+  65               		.section	.rodata.str1.1
+  66               	.LC1:
+  67 0018 3078 3831 		.string	"0x81 - Button 1 pressed"
+  67      202D 2042 
+  67      7574 746F 
+  67      6E20 3120 
+  67      7072 6573 
+  68               		.text
+  69               	.global	button1_once
+  71               	button1_once:
+  72               	.LFB7:
+  14:button.c      **** void button1_once(void) {
+  73               		.loc 1 14 0
+  74               		.cfi_startproc
+  75               	/* prologue: function */
+  76               	/* frame size = 0 */
+  77               	/* stack size = 0 */
+  78               	.L__stack_usage = 0
+  16:button.c      ****             uart_sendstr("0x81 - Button 1 pressed");
+  79               		.loc 1 16 0
+  80 0022 80E0      		ldi r24,lo8(.LC1)
+  81 0024 90E0      		ldi r25,hi8(.LC1)
+  82 0026 0E94 0000 		call uart_sendstr
+  83               	.LVL5:
+  18:button.c      ****     if(led <= 250) {
+  84               		.loc 1 18 0
+  85 002a 8091 0000 		lds r24,led
+  86 002e 8B3F      		cpi r24,lo8(-5)
+  87 0030 00F4      		brsh .L7
+  19:button.c      ****         led += 5;
+  88               		.loc 1 19 0
+  89 0032 8B5F      		subi r24,lo8(-(5))
+  90 0034 8093 0000 		sts led,r24
+  91               	.L7:
+  92 0038 0895      		ret
+  93               		.cfi_endproc
+  94               	.LFE7:
+  96               		.section	.rodata.str1.1
+  97               	.LC2:
+  98 0030 3078 3832 		.string	"0x82 - Button 2 pressed"
+  98      202D 2042 
+  98      7574 746F 
+  98      6E20 3220 
+  98      7072 6573 
+  99               		.text
+ 100               	.global	button2_once
+ 102               	button2_once:
+ 103               	.LFB8:
+  24:button.c      **** void button2_once(void) {
+ 104               		.loc 1 24 0
+ 105               		.cfi_startproc
+ 106               	/* prologue: function */
+ 107               	/* frame size = 0 */
+ 108               	/* stack size = 0 */
+ 109               	.L__stack_usage = 0
+  26:button.c      ****             uart_sendstr("0x82 - Button 2 pressed");
+ 110               		.loc 1 26 0
+ 111 003a 80E0      		ldi r24,lo8(.LC2)
+ 112 003c 90E0      		ldi r25,hi8(.LC2)
+ 113 003e 0E94 0000 		call uart_sendstr
+ 114               	.LVL6:
+  28:button.c      ****     if(led >= 5) {
+ 115               		.loc 1 28 0
+ 116 0042 8091 0000 		lds r24,led
+ 117 0046 8530      		cpi r24,lo8(5)
+ 118 0048 00F0      		brlo .L9
+  29:button.c      ****         led -= 5;
+ 119               		.loc 1 29 0
+ 120 004a 8550      		subi r24,lo8(-(-5))
+ 121 004c 8093 0000 		sts led,r24
+ 122               	.L9:
+ 123 0050 0895      		ret
+ 124               		.cfi_endproc
+ 125               	.LFE8:
+ 127               	.global	button3_once
+ 129               	button3_once:
+ 130               	.LFB9:
+  34:button.c      **** void button3_once(void) {
+ 131               		.loc 1 34 0
+ 132               		.cfi_startproc
+ 133               	/* prologue: function */
+ 134               	/* frame size = 0 */
+ 135               	/* stack size = 0 */
+ 136               	.L__stack_usage = 0
+  36:button.c      ****             uart_sendstr("0x83 - Button 3 pressed");
+ 137               		.loc 1 36 0
+ 138 0052 80E0      		ldi r24,lo8(.LC0)
+ 139 0054 90E0      		ldi r25,hi8(.LC0)
+ 140 0056 0C94 0000 		jmp uart_sendstr
+ 141               	.LVL7:
+ 142               		.cfi_endproc
+ 143               	.LFE9:
+ 145               	.global	button
+ 147               	button:
+ 148               	.LFB10:
+  41:button.c      **** void button(int which, int what) {
+ 149               		.loc 1 41 0
+ 150               		.cfi_startproc
+ 151               	.LVL8:
+ 152               	/* prologue: function */
+ 153               	/* frame size = 0 */
+ 154               	/* stack size = 0 */
+ 155               	.L__stack_usage = 0
+  42:button.c      ****     if(which == 0) {
+ 156               		.loc 1 42 0
+ 157 005a 0097      		sbiw r24,0
+ 158 005c 01F4      		brne .L13
+  43:button.c      ****         if(what == 1) {
+ 159               		.loc 1 43 0
+ 160 005e 6130      		cpi r22,1
+ 161 0060 7105      		cpc r23,__zero_reg__
+ 162 0062 01F0      		breq .L25
+  53:button.c      ****             once[which] = 0;
+ 163               		.loc 1 53 0
+ 164 0064 1092 0000 		sts once,__zero_reg__
+  54:button.c      ****             return;
+ 165               		.loc 1 54 0
+ 166 0068 0895      		ret
+ 167               	.L13:
+  57:button.c      ****     if(which == 1) {
+ 168               		.loc 1 57 0
+ 169 006a 8130      		cpi r24,1
+ 170 006c 9105      		cpc r25,__zero_reg__
+ 171 006e 01F0      		breq .L26
+  72:button.c      ****     if(which == 2) {
+ 172               		.loc 1 72 0
+ 173 0070 0297      		sbiw r24,2
+ 174 0072 01F0      		breq .L27
+ 175               	.LVL9:
+ 176               	.L12:
+ 177 0074 0895      		ret
+ 178               	.LVL10:
+ 179               	.L25:
+  45:button.c      ****             if(once[which] == 1) {
+ 180               		.loc 1 45 0
+ 181 0076 8091 0000 		lds r24,once
+ 182               	.LVL11:
+ 183 007a 8130      		cpi r24,lo8(1)
+ 184 007c 01F0      		breq .L12
+  48:button.c      ****                 button1_once();
+ 185               		.loc 1 48 0
+ 186 007e 0E94 0000 		call button1_once
+ 187               	.LVL12:
+  50:button.c      ****             once[which] = 1;
+ 188               		.loc 1 50 0
+ 189 0082 81E0      		ldi r24,lo8(1)
+ 190 0084 8093 0000 		sts once,r24
+  51:button.c      ****             return;
+ 191               		.loc 1 51 0
+ 192 0088 0895      		ret
+ 193               	.LVL13:
+ 194               	.L26:
+  58:button.c      ****         if(what == 1) {
+ 195               		.loc 1 58 0
+ 196 008a 6130      		cpi r22,1
+ 197 008c 7105      		cpc r23,__zero_reg__
+ 198 008e 01F0      		breq .L28
+  68:button.c      ****             once[which] = 0;
+ 199               		.loc 1 68 0
+ 200 0090 1092 0000 		sts once+1,__zero_reg__
+  69:button.c      ****             return;
+ 201               		.loc 1 69 0
+ 202 0094 0895      		ret
+ 203               	.L27:
+  73:button.c      ****         if(what == 1) {
+ 204               		.loc 1 73 0
+ 205 0096 6130      		cpi r22,1
+ 206 0098 7105      		cpc r23,__zero_reg__
+ 207 009a 01F0      		breq .L29
+  83:button.c      ****             once[which] = 0;
+ 208               		.loc 1 83 0
+ 209 009c 1092 0000 		sts once+2,__zero_reg__
+ 210 00a0 0895      		ret
+ 211               	.L28:
+  60:button.c      ****             if(once[which] == 1) {
+ 212               		.loc 1 60 0
+ 213 00a2 8091 0000 		lds r24,once+1
+ 214               	.LVL14:
+ 215 00a6 8130      		cpi r24,lo8(1)
+ 216 00a8 01F0      		breq .L12
+  63:button.c      ****                 button2_once();
+ 217               		.loc 1 63 0
+ 218 00aa 0E94 0000 		call button2_once
+ 219               	.LVL15:
+  65:button.c      ****             once[which] = 1;
+ 220               		.loc 1 65 0
+ 221 00ae 81E0      		ldi r24,lo8(1)
+ 222 00b0 8093 0000 		sts once+1,r24
+  66:button.c      ****             return;
+ 223               		.loc 1 66 0
+ 224 00b4 0895      		ret
+ 225               	.LVL16:
+ 226               	.L29:
+ 227 00b6 82E0      		ldi r24,lo8(2)
+ 228 00b8 90E0      		ldi r25,0
+ 229               	.LVL17:
+ 230 00ba 0C94 0000 		jmp button.part.0
+ 231               	.LVL18:
+ 232               		.cfi_endproc
+ 233               	.LFE10:
+ 235               	.global	check_buttons
+ 237               	check_buttons:
+ 238               	.LFB11:
+  89:button.c      **** 
+  90:button.c      **** void check_buttons(void) {
+ 239               		.loc 1 90 0
+ 240               		.cfi_startproc
+ 241               	/* prologue: function */
+ 242               	/* frame size = 0 */
+ 243               	/* stack size = 0 */
+ 244               	.L__stack_usage = 0
+  91:button.c      ****     /*
+  92:button.c      ****     In here is a fancy counter that keeps track of how long the button has been stable for
+  93:button.c      ****     if the button is still bouncing then the count will reset before it reaches the safe
+  94:button.c      ****     limit to count it as pressed.
+  95:button.c      ****     simply increases or resets a counter
+  96:button.c      ****     if the counter is above 5 it means the button is stable enough to be used
+  97:button.c      ****     if this happens, the function tied to that button is called
+  98:button.c      ****     if the button is released, then the count is cleared
+  99:button.c      ****     and the button bounce function is called
+ 100:button.c      ****     */
+ 101:button.c      ****     cli();
+ 245               		.loc 1 101 0
+ 246               	/* #APP */
+ 247               	 ;  101 "button.c" 1
+ 248 00be F894      		cli
+ 249               	 ;  0 "" 2
+ 102:button.c      ****     #if DEBUG_BUT
+ 103:button.c      ****         if ((PIND & button_one) | (PIND & button_two)) {
+ 104:button.c      ****                 uart_sendstr("0x08 - Button pressed");
+ 105:button.c      ****         }
+ 106:button.c      ****     #endif
+ 107:button.c      ****     if((PIND & button_one) && (PIND & button_two)) {
+ 250               		.loc 1 107 0
+ 251               	/* #NOAPP */
+ 252 00c0 4B9B      		sbis 0x9,3
+ 253 00c2 00C0      		rjmp .L31
+ 254               		.loc 1 107 0 is_stmt 0 discriminator 1
+ 255 00c4 4C9B      		sbis 0x9,4
+ 256 00c6 00C0      		rjmp .L31
+ 108:button.c      ****         dig_count[2]++;
+ 257               		.loc 1 108 0 is_stmt 1
+ 258 00c8 8091 0000 		lds r24,dig_count+2
+ 259 00cc 8F5F      		subi r24,lo8(-(1))
+ 260 00ce 8093 0000 		sts dig_count+2,r24
+ 109:button.c      ****         if (dig_count[2] > DEBOUNCE_TIME) {
+ 261               		.loc 1 109 0
+ 262 00d2 8B30      		cpi r24,lo8(11)
+ 263 00d4 00F0      		brlo .L33
+ 264               	.LVL19:
+ 265               	.LBB16:
+ 266               	.LBB17:
+ 267 00d6 82E0      		ldi r24,lo8(2)
+ 268 00d8 90E0      		ldi r25,0
+ 269 00da 0C94 0000 		jmp button.part.0
+ 270               	.LVL20:
+ 271               	.L31:
+ 272               	.LBE17:
+ 273               	.LBE16:
+ 110:button.c      ****             button(2, 1);
+ 111:button.c      ****             return;
+ 112:button.c      ****         }
+ 113:button.c      ****     } else {
+ 114:button.c      ****         //if the button changes state, reset the count and trigger the button bounce function
+ 115:button.c      ****         dig_count[2] = 0;
+ 274               		.loc 1 115 0
+ 275 00de 1092 0000 		sts dig_count+2,__zero_reg__
+ 276               	.LVL21:
+ 277               	.LBB18:
+ 278               	.LBB19:
+  83:button.c      ****             once[which] = 0;
+ 279               		.loc 1 83 0
+ 280 00e2 1092 0000 		sts once+2,__zero_reg__
+ 281               	.LBE19:
+ 282               	.LBE18:
+ 116:button.c      ****         button(2, 0);
+ 117:button.c      ****         if((PIND & button_one)) {
+ 283               		.loc 1 117 0
+ 284 00e6 4B9B      		sbis 0x9,3
+ 285 00e8 00C0      		rjmp .L34
+ 118:button.c      ****             dig_count[0]++;
+ 286               		.loc 1 118 0
+ 287 00ea 8091 0000 		lds r24,dig_count
+ 288 00ee 8F5F      		subi r24,lo8(-(1))
+ 289 00f0 8093 0000 		sts dig_count,r24
+ 119:button.c      ****             if (dig_count[0] > DEBOUNCE_TIME) {
+ 290               		.loc 1 119 0
+ 291 00f4 8B30      		cpi r24,lo8(11)
+ 292 00f6 00F4      		brsh .L44
+ 120:button.c      ****                 button(0, 1);
+ 121:button.c      ****                 return;
+ 122:button.c      ****             }
+ 123:button.c      ****         } else {
+ 124:button.c      ****             //if the button changes state, reset the count and trigger the button bounce function
+ 125:button.c      ****             dig_count[0] = 0;
+ 126:button.c      ****             button(0, 0);
+ 127:button.c      ****         }
+ 128:button.c      ****         if((PIND & button_two)) {
+ 293               		.loc 1 128 0
+ 294 00f8 4C9B      		sbis 0x9,4
+ 295 00fa 00C0      		rjmp .L36
+ 296               	.L46:
+ 129:button.c      ****             dig_count[1]++;
+ 297               		.loc 1 129 0
+ 298 00fc 8091 0000 		lds r24,dig_count+1
+ 299 0100 8F5F      		subi r24,lo8(-(1))
+ 300 0102 8093 0000 		sts dig_count+1,r24
+ 130:button.c      ****             if (dig_count[1] > DEBOUNCE_TIME) {
+ 301               		.loc 1 130 0
+ 302 0106 8B30      		cpi r24,lo8(11)
+ 303 0108 00F4      		brsh .L45
+ 304               	.LVL22:
+ 305               	.L33:
+ 131:button.c      ****                 button(1, 1);
+ 132:button.c      ****                 return;
+ 133:button.c      ****             }
+ 134:button.c      ****         } else {
+ 135:button.c      ****             //if the button changes state, reset the count and trigger the button bounce function
+ 136:button.c      ****             dig_count[1] = 0;
+ 137:button.c      ****             button(1, 0);
+ 138:button.c      ****         }
+ 139:button.c      ****     }
+ 140:button.c      ****     sei();
+ 306               		.loc 1 140 0
+ 307               	/* #APP */
+ 308               	 ;  140 "button.c" 1
+ 309 010a 7894      		sei
+ 310               	 ;  0 "" 2
+ 311               	/* #NOAPP */
+ 312 010c 0895      		ret
+ 313               	.LVL23:
+ 314               	.L34:
+ 125:button.c      ****             dig_count[0] = 0;
+ 315               		.loc 1 125 0
+ 316 010e 1092 0000 		sts dig_count,__zero_reg__
+ 317               	.LVL24:
+ 318               	.LBB20:
+ 319               	.LBB21:
+  53:button.c      ****             once[which] = 0;
+ 320               		.loc 1 53 0
+ 321 0112 1092 0000 		sts once,__zero_reg__
+ 322               	.LBE21:
+ 323               	.LBE20:
+ 128:button.c      ****         if((PIND & button_two)) {
+ 324               		.loc 1 128 0
+ 325 0116 4C99      		sbic 0x9,4
+ 326 0118 00C0      		rjmp .L46
+ 327               	.LVL25:
+ 328               	.L36:
+ 136:button.c      ****             dig_count[1] = 0;
+ 329               		.loc 1 136 0
+ 330 011a 1092 0000 		sts dig_count+1,__zero_reg__
+ 331               	.LVL26:
+ 332               	.LBB22:
+ 333               	.LBB23:
+  68:button.c      ****             once[which] = 0;
+ 334               		.loc 1 68 0
+ 335 011e 1092 0000 		sts once+1,__zero_reg__
+ 336               	.LBE23:
+ 337               	.LBE22:
+ 338               		.loc 1 140 0
+ 339               	/* #APP */
+ 340               	 ;  140 "button.c" 1
+ 341 0122 7894      		sei
+ 342               	 ;  0 "" 2
+ 343               	/* #NOAPP */
+ 344 0124 0895      		ret
+ 345               	.LVL27:
+ 346               	.L44:
+ 120:button.c      ****                 button(0, 1);
+ 347               		.loc 1 120 0
+ 348 0126 61E0      		ldi r22,lo8(1)
+ 349 0128 70E0      		ldi r23,0
+ 350 012a 80E0      		ldi r24,0
+ 351 012c 90E0      		ldi r25,0
+ 352 012e 0C94 0000 		jmp button
+ 353               	.LVL28:
+ 354               	.L45:
+ 131:button.c      ****                 button(1, 1);
+ 355               		.loc 1 131 0
+ 356 0132 61E0      		ldi r22,lo8(1)
+ 357 0134 70E0      		ldi r23,0
+ 358 0136 81E0      		ldi r24,lo8(1)
+ 359 0138 90E0      		ldi r25,0
+ 360 013a 0C94 0000 		jmp button
+ 361               	.LVL29:
+ 362               		.cfi_endproc
+ 363               	.LFE11:
+ 365               		.section	.rodata.str1.1
+ 366               	.LC3:
+ 367 0048 3078 3037 		.string	"0x07 - DEBOUNCE is up..."
+ 367      202D 2044 
+ 367      4542 4F55 
+ 367      4E43 4520 
+ 367      6973 2075 
+ 368               		.text
+ 369               	.global	init_buttons
+ 371               	init_buttons:
+ 372               	.LFB12:
+ 141:button.c      ****     return;
+ 142:button.c      **** }
+ 143:button.c      **** 
+ 144:button.c      **** /*
+ 145:button.c      **** Buttons, this section uses timer2 because timer 1 is reserved for 16bit tasks
+ 146:button.c      **** and timer0 is reserved for the kernel and task switching
+ 147:button.c      ****  */
+ 148:button.c      **** void init_buttons(void) {
+ 373               		.loc 1 148 0
+ 374               		.cfi_startproc
+ 375               	/* prologue: function */
+ 376               	/* frame size = 0 */
+ 377               	/* stack size = 0 */
+ 378               	.L__stack_usage = 0
+ 149:button.c      ****     DDRD &= ~(1<<3)
+ 379               		.loc 1 149 0
+ 380 013e 8AB1      		in r24,0xa
+ 381 0140 877E      		andi r24,lo8(-25)
+ 382 0142 8AB9      		out 0xa,r24
+ 150:button.c      ****          & ~(1<<4);
+ 151:button.c      **** 
+ 152:button.c      ****     TCNT2 = 0; //set the inital timer value to 0
+ 383               		.loc 1 152 0
+ 384 0144 1092 B200 		sts 178,__zero_reg__
+ 153:button.c      ****     TCCR2B |= (1<<CS02); //set the clock prescaler to clock/256 or 62.5kHz
+ 385               		.loc 1 153 0
+ 386 0148 E1EB      		ldi r30,lo8(-79)
+ 387 014a F0E0      		ldi r31,0
+ 388 014c 8081      		ld r24,Z
+ 389 014e 8460      		ori r24,lo8(4)
+ 390 0150 8083      		st Z,r24
+ 154:button.c      ****     TIMSK2 |= (1<<TOIE0); //start the timer with the interrupt overflow turned on
+ 391               		.loc 1 154 0
+ 392 0152 E0E7      		ldi r30,lo8(112)
+ 393 0154 F0E0      		ldi r31,0
+ 394 0156 8081      		ld r24,Z
+ 395 0158 8160      		ori r24,lo8(1)
+ 396 015a 8083      		st Z,r24
+ 155:button.c      **** 
+ 156:button.c      ****     #if DEBUG
+ 157:button.c      ****             uart_sendstr("0x07 - DEBOUNCE is up...");
+ 397               		.loc 1 157 0
+ 398 015c 80E0      		ldi r24,lo8(.LC3)
+ 399 015e 90E0      		ldi r25,hi8(.LC3)
+ 400 0160 0C94 0000 		jmp uart_sendstr
+ 401               	.LVL30:
+ 402               		.cfi_endproc
+ 403               	.LFE12:
+ 405               	.global	__vector_15
+ 407               	__vector_15:
+ 408               	.LFB13:
+ 158:button.c      ****     #endif
+ 159:button.c      ****     return;
+ 160:button.c      **** }
+ 161:button.c      **** 
+ 162:button.c      **** ISR(TIMER2_OVF_vect) {
+ 409               		.loc 1 162 0
+ 410               		.cfi_startproc
+ 411 0164 1F92      		push r1
+ 412               	.LCFI2:
+ 413               		.cfi_def_cfa_offset 4
+ 414               		.cfi_offset 1, -3
+ 415 0166 0F92      		push r0
+ 416               	.LCFI3:
+ 417               		.cfi_def_cfa_offset 5
+ 418               		.cfi_offset 0, -4
+ 419 0168 0FB6      		in r0,__SREG__
+ 420 016a 0F92      		push r0
+ 421 016c 1124      		clr __zero_reg__
+ 422 016e 0BB6      		in r0,__RAMPZ__
+ 423 0170 0F92      		push r0
+ 424 0172 2F93      		push r18
+ 425               	.LCFI4:
+ 426               		.cfi_def_cfa_offset 6
+ 427               		.cfi_offset 18, -5
+ 428 0174 3F93      		push r19
+ 429               	.LCFI5:
+ 430               		.cfi_def_cfa_offset 7
+ 431               		.cfi_offset 19, -6
+ 432 0176 4F93      		push r20
+ 433               	.LCFI6:
+ 434               		.cfi_def_cfa_offset 8
+ 435               		.cfi_offset 20, -7
+ 436 0178 5F93      		push r21
+ 437               	.LCFI7:
+ 438               		.cfi_def_cfa_offset 9
+ 439               		.cfi_offset 21, -8
+ 440 017a 6F93      		push r22
+ 441               	.LCFI8:
+ 442               		.cfi_def_cfa_offset 10
+ 443               		.cfi_offset 22, -9
+ 444 017c 7F93      		push r23
+ 445               	.LCFI9:
+ 446               		.cfi_def_cfa_offset 11
+ 447               		.cfi_offset 23, -10
+ 448 017e 8F93      		push r24
+ 449               	.LCFI10:
+ 450               		.cfi_def_cfa_offset 12
+ 451               		.cfi_offset 24, -11
+ 452 0180 9F93      		push r25
+ 453               	.LCFI11:
+ 454               		.cfi_def_cfa_offset 13
+ 455               		.cfi_offset 25, -12
+ 456 0182 AF93      		push r26
+ 457               	.LCFI12:
+ 458               		.cfi_def_cfa_offset 14
+ 459               		.cfi_offset 26, -13
+ 460 0184 BF93      		push r27
+ 461               	.LCFI13:
+ 462               		.cfi_def_cfa_offset 15
+ 463               		.cfi_offset 27, -14
+ 464 0186 EF93      		push r30
+ 465               	.LCFI14:
+ 466               		.cfi_def_cfa_offset 16
+ 467               		.cfi_offset 30, -15
+ 468 0188 FF93      		push r31
+ 469               	.LCFI15:
+ 470               		.cfi_def_cfa_offset 17
+ 471               		.cfi_offset 31, -16
+ 472               	/* prologue: Signal */
+ 473               	/* frame size = 0 */
+ 474               	/* stack size = 16 */
+ 475               	.L__stack_usage = 16
+ 163:button.c      ****     /*
+ 164:button.c      ****     Timer2 overflow interrupt servic routine for the debouncing of buttons.
+ 165:button.c      ****     */
+ 166:button.c      ****     check_buttons();
+ 476               		.loc 1 166 0
+ 477 018a 0E94 0000 		call check_buttons
+ 478               	.LVL31:
+ 479               	/* epilogue start */
+ 167:button.c      ****     return;
+ 168:button.c      **** }
+ 480               		.loc 1 168 0
+ 481 018e FF91      		pop r31
+ 482 0190 EF91      		pop r30
+ 483 0192 BF91      		pop r27
+ 484 0194 AF91      		pop r26
+ 485 0196 9F91      		pop r25
+ 486 0198 8F91      		pop r24
+ 487 019a 7F91      		pop r23
+ 488 019c 6F91      		pop r22
+ 489 019e 5F91      		pop r21
+ 490 01a0 4F91      		pop r20
+ 491 01a2 3F91      		pop r19
+ 492 01a4 2F91      		pop r18
+ 493 01a6 0F90      		pop r0
+ 494 01a8 0BBE      		out __RAMPZ__,r0
+ 495 01aa 0F90      		pop r0
+ 496 01ac 0FBE      		out __SREG__,r0
+ 497 01ae 0F90      		pop r0
+ 498 01b0 1F90      		pop r1
+ 499 01b2 1895      		reti
+ 500               		.cfi_endproc
+ 501               	.LFE13:
+ 503               		.comm	led,1,1
+ 504               		.comm	once,3,1
+ 505               		.comm	dig_count,3,1
+ 506               		.comm	read_spot,2,1
+ 507               		.comm	input_buffer,700,1
+ 508               		.comm	mcp_data,6,1
+ 509               	.Letext0:
+ 510               		.file 2 "/usr/avr/include/stdint.h"
+ 511               		.file 3 "i2c.h"
+ 512               		.file 4 "uart.h"
+ 513               		.file 5 "button.h"
+ 514               		.file 6 "global.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 button.c
+     /tmp/ccktGvKD.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccktGvKD.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccktGvKD.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccktGvKD.s:5      *ABS*:000000000000003b __RAMPZ__
+     /tmp/ccktGvKD.s:6      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccktGvKD.s:7      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccktGvKD.s:16     .text:0000000000000000 button.part.0
+                            *COM*:0000000000000003 once
+     /tmp/ccktGvKD.s:71     .text:0000000000000022 button1_once
+                            *COM*:0000000000000001 led
+     /tmp/ccktGvKD.s:102    .text:000000000000003a button2_once
+     /tmp/ccktGvKD.s:129    .text:0000000000000052 button3_once
+     /tmp/ccktGvKD.s:147    .text:000000000000005a button
+     /tmp/ccktGvKD.s:237    .text:00000000000000be check_buttons
+                            *COM*:0000000000000003 dig_count
+     /tmp/ccktGvKD.s:371    .text:000000000000013e init_buttons
+     /tmp/ccktGvKD.s:407    .text:0000000000000164 __vector_15
+                            *COM*:0000000000000002 read_spot
+                            *COM*:00000000000002bc input_buffer
+                            *COM*:0000000000000006 mcp_data
+
+UNDEFINED SYMBOLS
+uart_sendstr
+__do_copy_data
+__do_clear_bss

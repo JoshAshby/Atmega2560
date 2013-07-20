@@ -1,0 +1,619 @@
+   1               		.file	"i2c.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               		.section	.rodata.str1.1,"aMS",@progbits,1
+  12               	.LC0:
+  13 0000 3078 3035 		.string	"0x05 - TWI is up..."
+  13      202D 2054 
+  13      5749 2069 
+  13      7320 7570 
+  13      2E2E 2E00 
+  14               		.text
+  15               	.global	twi_start
+  17               	twi_start:
+  18               	.LFB7:
+  19               		.file 1 "i2c.c"
+   1:i2c.c         **** //-------------------------------------------
+   2:i2c.c         **** /*
+   3:i2c.c         **** I2C.c
+   4:i2c.c         **** 2011 - Josh Ashby
+   5:i2c.c         **** joshuaashby@joshashby.com
+   6:i2c.c         **** http://joshashby.com
+   7:i2c.c         **** http://github.com/JoshAshby
+   8:i2c.c         **** freenode/#linuxandsci - JoshAshby
+   9:i2c.c         **** */
+  10:i2c.c         **** //-------------------------------------------
+  11:i2c.c         **** #include "global.h"
+  12:i2c.c         **** 
+  13:i2c.c         **** void twi_start(void) { //set up the clock speed for the I2C/TWI
+  20               		.loc 1 13 0
+  21               		.cfi_startproc
+  22               	/* prologue: function */
+  23               	/* frame size = 0 */
+  24               	/* stack size = 0 */
+  25               	.L__stack_usage = 0
+  14:i2c.c         ****     TWSR = 0x00;
+  26               		.loc 1 14 0
+  27 0000 1092 B900 		sts 185,__zero_reg__
+  15:i2c.c         ****     TWBR = (F_CPU / 100000UL - 16) / 2;
+  28               		.loc 1 15 0
+  29 0004 80E2      		ldi r24,lo8(32)
+  30 0006 8093 B800 		sts 184,r24
+  16:i2c.c         ****     #if DEBUG
+  17:i2c.c         ****             uart_sendstr("0x05 - TWI is up...");
+  31               		.loc 1 17 0
+  32 000a 80E0      		ldi r24,lo8(.LC0)
+  33 000c 90E0      		ldi r25,hi8(.LC0)
+  34 000e 0C94 0000 		jmp uart_sendstr
+  35               	.LVL0:
+  36               		.cfi_endproc
+  37               	.LFE7:
+  39               	.global	twi_tran
+  41               	twi_tran:
+  42               	.LFB8:
+  18:i2c.c         ****     #endif
+  19:i2c.c         **** }
+  20:i2c.c         **** 
+  21:i2c.c         **** //various different things to help condense code
+  22:i2c.c         **** unsigned char twi_tran(unsigned char type) {
+  43               		.loc 1 22 0
+  44               		.cfi_startproc
+  45               	.LVL1:
+  46               	/* prologue: function */
+  47               	/* frame size = 0 */
+  48               	/* stack size = 0 */
+  49               	.L__stack_usage = 0
+  23:i2c.c         ****   switch(type) {
+  50               		.loc 1 23 0
+  51 0012 8130      		cpi r24,lo8(1)
+  52 0014 01F0      		breq .L4
+  53 0016 00F0      		brlo .L5
+  54 0018 8230      		cpi r24,lo8(2)
+  55 001a 01F4      		brne .L9
+  24:i2c.c         ****      case TWI_START: //Start Condition
+  25:i2c.c         ****        TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
+  26:i2c.c         ****        break;
+  27:i2c.c         ****      case TWI_DATA: //Data
+  28:i2c.c         ****        TWCR = (1 << TWINT) | (1 << TWEN);
+  29:i2c.c         ****        break;
+  30:i2c.c         ****      case TWI_STOP: //Stop Condition
+  31:i2c.c         ****        TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
+  56               		.loc 1 31 0
+  57 001c 84E9      		ldi r24,lo8(-108)
+  58               	.LVL2:
+  59 001e 8093 BC00 		sts 188,r24
+  32:i2c.c         ****        return 0;
+  60               		.loc 1 32 0
+  61 0022 80E0      		ldi r24,0
+  62 0024 0895      		ret
+  63               	.LVL3:
+  64               	.L5:
+  25:i2c.c         ****        TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
+  65               		.loc 1 25 0
+  66 0026 84EA      		ldi r24,lo8(-92)
+  67               	.LVL4:
+  68 0028 8093 BC00 		sts 188,r24
+  69               	.L9:
+  33:i2c.c         ****   }
+  34:i2c.c         ****   while (!(TWCR & (1 << TWINT))); // Wait for TWINT flag set in TWCR Register
+  70               		.loc 1 34 0 discriminator 1
+  71 002c 8091 BC00 		lds r24,188
+  72 0030 87FF      		sbrs r24,7
+  73 0032 00C0      		rjmp .L9
+  74               	.L11:
+  35:i2c.c         ****   return (TWSR & 0xF8); // Return TWI Status Register, mask the prescaler bits (TWPS1,TWPS0)
+  75               		.loc 1 35 0
+  76 0034 8091 B900 		lds r24,185
+  77 0038 887F      		andi r24,lo8(-8)
+  36:i2c.c         **** }
+  78               		.loc 1 36 0
+  79 003a 0895      		ret
+  80               	.LVL5:
+  81               	.L4:
+  28:i2c.c         ****        TWCR = (1 << TWINT) | (1 << TWEN);
+  82               		.loc 1 28 0
+  83 003c 84E8      		ldi r24,lo8(-124)
+  84               	.LVL6:
+  85 003e 8093 BC00 		sts 188,r24
+  34:i2c.c         ****   while (!(TWCR & (1 << TWINT))); // Wait for TWINT flag set in TWCR Register
+  86               		.loc 1 34 0
+  87 0042 8091 BC00 		lds r24,188
+  88 0046 87FF      		sbrs r24,7
+  89 0048 00C0      		rjmp .L9
+  90 004a 00C0      		rjmp .L11
+  91               		.cfi_endproc
+  92               	.LFE8:
+  94               	.global	twi_mcp_dac
+  96               	twi_mcp_dac:
+  97               	.LFB9:
+  37:i2c.c         **** 
+  38:i2c.c         **** /*
+  39:i2c.c         **** TWI code for writing DAC data to the MCP4725 I2C DAC
+  40:i2c.c         **** First to write to the dac only we must specify this in the POD byte
+  41:i2c.c         **** for DAC only we send 0x40 which is 0b01000000 because we don't want
+  42:i2c.c         **** any of the Power Down stuff and we only want DAC which means C2, C1, C0,
+  43:i2c.c         **** should be 0, 1, 0 respectably. for writing to the DAC and the EEPROM
+  44:i2c.c         **** they would be 0, 1, 1 and the last byte on the address should be 1
+  45:i2c.c         **** */
+  46:i2c.c         **** int twi_mcp_dac(unsigned int twi_address, uint16_t data, _Bool type) {
+  98               		.loc 1 46 0
+  99               		.cfi_startproc
+ 100               	.LVL7:
+ 101 004c FF92      		push r15
+ 102               	.LCFI0:
+ 103               		.cfi_def_cfa_offset 4
+ 104               		.cfi_offset 15, -3
+ 105 004e 0F93      		push r16
+ 106               	.LCFI1:
+ 107               		.cfi_def_cfa_offset 5
+ 108               		.cfi_offset 16, -4
+ 109 0050 1F93      		push r17
+ 110               	.LCFI2:
+ 111               		.cfi_def_cfa_offset 6
+ 112               		.cfi_offset 17, -5
+ 113 0052 CF93      		push r28
+ 114               	.LCFI3:
+ 115               		.cfi_def_cfa_offset 7
+ 116               		.cfi_offset 28, -6
+ 117 0054 DF93      		push r29
+ 118               	.LCFI4:
+ 119               		.cfi_def_cfa_offset 8
+ 120               		.cfi_offset 29, -7
+ 121               	/* prologue: function */
+ 122               	/* frame size = 0 */
+ 123               	/* stack size = 5 */
+ 124               	.L__stack_usage = 5
+ 125 0056 D82F      		mov r29,r24
+ 126 0058 F62E      		mov r15,r22
+ 127 005a 072F      		mov r16,r23
+ 128 005c 142F      		mov r17,r20
+ 129               	.LVL8:
+ 130               		.loc 1 46 0
+ 131 005e C2E3      		ldi r28,lo8(50)
+ 132               	.LVL9:
+ 133               	.L13:
+  47:i2c.c         ****     /*
+  48:i2c.c         ****     Pass the address, the 16 bit long data for the DAC/EEPROM
+  49:i2c.c         ****     and either 1 for POD which will write to the EEPROM or 0 to just write to the DAC
+  50:i2c.c         ****     */
+  51:i2c.c         ****     unsigned char n = 0;
+  52:i2c.c         ****     unsigned char twi_status;
+  53:i2c.c         ****     char r_val = -1;
+  54:i2c.c         ****     twi_retry:
+  55:i2c.c         ****         if (n++ >= MAX_TRIES) return r_val;
+  56:i2c.c         **** 
+  57:i2c.c         ****         //first we must try to start the TWI interface
+  58:i2c.c         ****         twi_status=twi_tran(TWI_START);  //Start Condition
+ 134               		.loc 1 58 0
+ 135 0060 80E0      		ldi r24,0
+ 136 0062 0E94 0000 		call twi_tran
+ 137               	.LVL10:
+  59:i2c.c         ****         if (twi_status == TW_MT_ARB_LOST) goto twi_retry;  //TWI Status
+ 138               		.loc 1 59 0
+ 139 0066 8833      		cpi r24,lo8(56)
+ 140 0068 01F0      		breq .L15
+  60:i2c.c         ****         if ((twi_status != TW_START) && (twi_status != TW_REP_START)) goto twi_quit;
+ 141               		.loc 1 60 0
+ 142 006a 8830      		cpi r24,lo8(8)
+ 143 006c 01F0      		breq .L16
+ 144               		.loc 1 60 0 is_stmt 0 discriminator 1
+ 145 006e 8031      		cpi r24,lo8(16)
+ 146 0070 01F4      		brne .L18
+ 147               	.L16:
+  61:i2c.c         **** 
+  62:i2c.c         ****         //next we send the slave address, which in this case has 0 to only write to the dac
+  63:i2c.c         ****         TWDR = twi_address | 0;  //Send slave address
+ 148               		.loc 1 63 0 is_stmt 1
+ 149 0072 D093 BB00 		sts 187,r29
+  64:i2c.c         ****         twi_status=twi_tran(TWI_DATA);  //Transmit
+ 150               		.loc 1 64 0
+ 151 0076 81E0      		ldi r24,lo8(1)
+ 152               	.LVL11:
+ 153 0078 0E94 0000 		call twi_tran
+ 154               	.LVL12:
+  65:i2c.c         ****         if ((twi_status == TW_MT_SLA_NACK) || (twi_status == TW_MT_ARB_LOST)) goto twi_retry;  //TW
+ 155               		.loc 1 65 0
+ 156 007c 8032      		cpi r24,lo8(32)
+ 157 007e 01F0      		breq .L15
+ 158               		.loc 1 65 0 is_stmt 0 discriminator 1
+ 159 0080 8833      		cpi r24,lo8(56)
+ 160 0082 01F4      		brne .L39
+ 161               	.L15:
+ 162               	.LVL13:
+ 163 0084 C150      		subi r28,lo8(-(-1))
+ 164               	.LVL14:
+  55:i2c.c         ****         if (n++ >= MAX_TRIES) return r_val;
+ 165               		.loc 1 55 0 is_stmt 1
+ 166 0086 01F4      		brne .L13
+ 167 0088 CFEF      		ldi r28,lo8(-1)
+ 168 008a D0E0      		ldi r29,0
+ 169               	.LVL15:
+  66:i2c.c         ****         if (twi_status != TW_MT_SLA_ACK) goto twi_quit;
+  67:i2c.c         **** 
+  68:i2c.c         ****         //next we send the POD byte which tells the MCP we will only be writing to the DAC and not 
+  69:i2c.c         ****         if (type) {
+  70:i2c.c         ****             TWDR = 0x60;  //Send the POD data
+  71:i2c.c         ****         } else {
+  72:i2c.c         ****             TWDR = 0x40;
+  73:i2c.c         ****         }
+  74:i2c.c         ****         twi_status=twi_tran(TWI_DATA);  //Transmit
+  75:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;  //status
+  76:i2c.c         **** 
+  77:i2c.c         ****         //next we send the 12bit data in two transfers to get it all across
+  78:i2c.c         ****         TWDR = data;  //Send the first byte of data
+  79:i2c.c         ****         twi_status=twi_tran(TWI_DATA);  //Transmit
+  80:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;  //TWSR status
+  81:i2c.c         **** 
+  82:i2c.c         ****         //and second part
+  83:i2c.c         ****         TWDR = (data >> 8);  //Send second byte of data
+  84:i2c.c         ****         twi_status=twi_tran(TWI_DATA);  //Transmit
+  85:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;  //TWSR status
+  86:i2c.c         **** 
+  87:i2c.c         ****         //finally we have to repeat the whole thing over to make sure it got it all according to th
+  88:i2c.c         ****         if (type) {
+  89:i2c.c         ****             TWDR = 0x60;  //Send the POD data
+  90:i2c.c         ****         } else {
+  91:i2c.c         ****             TWDR = 0x40;
+  92:i2c.c         ****         }
+  93:i2c.c         ****         twi_status=twi_tran(TWI_DATA);  //Transmit
+  94:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;  //TWSR status
+  95:i2c.c         ****         TWDR = data;  //Send the first bytes of Data
+  96:i2c.c         ****         twi_status=twi_tran(TWI_DATA);  //Transmit
+  97:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;  //TWSR status
+  98:i2c.c         ****         TWDR = (data >> 8);  //Send second byte of data
+  99:i2c.c         ****         twi_status=twi_tran(TWI_DATA);  //Transmit
+ 100:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;  //TWSR status
+ 101:i2c.c         ****         r_val=1;
+ 102:i2c.c         ****     twi_quit:
+ 103:i2c.c         ****         //and finally stop
+ 104:i2c.c         ****         twi_status=twi_tran(TWI_STOP);  //Transmit
+ 105:i2c.c         ****         return r_val;
+ 106:i2c.c         **** }
+ 170               		.loc 1 106 0
+ 171 008c CE01      		movw r24,r28
+ 172               	.LVL16:
+ 173               	/* epilogue start */
+ 174 008e DF91      		pop r29
+ 175 0090 CF91      		pop r28
+ 176 0092 1F91      		pop r17
+ 177               	.LVL17:
+ 178 0094 0F91      		pop r16
+ 179 0096 FF90      		pop r15
+ 180 0098 0895      		ret
+ 181               	.LVL18:
+ 182               	.L39:
+  66:i2c.c         ****         if (twi_status != TW_MT_SLA_ACK) goto twi_quit;
+ 183               		.loc 1 66 0
+ 184 009a 8831      		cpi r24,lo8(24)
+ 185 009c 01F0      		breq .L40
+ 186               	.L18:
+  46:i2c.c         **** int twi_mcp_dac(unsigned int twi_address, uint16_t data, _Bool type) {
+ 187               		.loc 1 46 0
+ 188 009e CFEF      		ldi r28,lo8(-1)
+ 189 00a0 D0E0      		ldi r29,0
+ 190               	.LVL19:
+ 191               	.L17:
+ 104:i2c.c         ****         twi_status=twi_tran(TWI_STOP);  //Transmit
+ 192               		.loc 1 104 0
+ 193 00a2 82E0      		ldi r24,lo8(2)
+ 194               	.LVL20:
+ 195 00a4 0E94 0000 		call twi_tran
+ 196               	.LVL21:
+ 197               		.loc 1 106 0
+ 198 00a8 CE01      		movw r24,r28
+ 199               	/* epilogue start */
+ 200 00aa DF91      		pop r29
+ 201 00ac CF91      		pop r28
+ 202 00ae 1F91      		pop r17
+ 203               	.LVL22:
+ 204 00b0 0F91      		pop r16
+ 205 00b2 FF90      		pop r15
+ 206 00b4 0895      		ret
+ 207               	.LVL23:
+ 208               	.L40:
+  69:i2c.c         ****         if (type) {
+ 209               		.loc 1 69 0
+ 210 00b6 1111      		cpse r17,__zero_reg__
+ 211 00b8 00C0      		rjmp .L41
+  72:i2c.c         ****             TWDR = 0x40;
+ 212               		.loc 1 72 0
+ 213 00ba 80E4      		ldi r24,lo8(64)
+ 214               	.LVL24:
+ 215 00bc 8093 BB00 		sts 187,r24
+ 216               	.L20:
+  74:i2c.c         ****         twi_status=twi_tran(TWI_DATA);  //Transmit
+ 217               		.loc 1 74 0
+ 218 00c0 81E0      		ldi r24,lo8(1)
+ 219 00c2 0E94 0000 		call twi_tran
+ 220               	.LVL25:
+  75:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;  //status
+ 221               		.loc 1 75 0
+ 222 00c6 8832      		cpi r24,lo8(40)
+ 223 00c8 01F4      		brne .L18
+  78:i2c.c         ****         TWDR = data;  //Send the first byte of data
+ 224               		.loc 1 78 0
+ 225 00ca F092 BB00 		sts 187,r15
+  79:i2c.c         ****         twi_status=twi_tran(TWI_DATA);  //Transmit
+ 226               		.loc 1 79 0
+ 227 00ce 81E0      		ldi r24,lo8(1)
+ 228               	.LVL26:
+ 229 00d0 0E94 0000 		call twi_tran
+ 230               	.LVL27:
+  80:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;  //TWSR status
+ 231               		.loc 1 80 0
+ 232 00d4 8832      		cpi r24,lo8(40)
+ 233 00d6 01F4      		brne .L18
+  83:i2c.c         ****         TWDR = (data >> 8);  //Send second byte of data
+ 234               		.loc 1 83 0
+ 235 00d8 0093 BB00 		sts 187,r16
+  84:i2c.c         ****         twi_status=twi_tran(TWI_DATA);  //Transmit
+ 236               		.loc 1 84 0
+ 237 00dc 81E0      		ldi r24,lo8(1)
+ 238               	.LVL28:
+ 239 00de 0E94 0000 		call twi_tran
+ 240               	.LVL29:
+  85:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;  //TWSR status
+ 241               		.loc 1 85 0
+ 242 00e2 8832      		cpi r24,lo8(40)
+ 243 00e4 01F4      		brne .L18
+  88:i2c.c         ****         if (type) {
+ 244               		.loc 1 88 0
+ 245 00e6 1123      		tst r17
+ 246 00e8 01F0      		breq .L21
+  89:i2c.c         ****             TWDR = 0x60;  //Send the POD data
+ 247               		.loc 1 89 0
+ 248 00ea 80E6      		ldi r24,lo8(96)
+ 249               	.LVL30:
+ 250 00ec 8093 BB00 		sts 187,r24
+ 251               	.L22:
+  93:i2c.c         ****         twi_status=twi_tran(TWI_DATA);  //Transmit
+ 252               		.loc 1 93 0
+ 253 00f0 81E0      		ldi r24,lo8(1)
+ 254 00f2 0E94 0000 		call twi_tran
+ 255               	.LVL31:
+  94:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;  //TWSR status
+ 256               		.loc 1 94 0
+ 257 00f6 8832      		cpi r24,lo8(40)
+ 258 00f8 01F4      		brne .L18
+  95:i2c.c         ****         TWDR = data;  //Send the first bytes of Data
+ 259               		.loc 1 95 0
+ 260 00fa F092 BB00 		sts 187,r15
+  96:i2c.c         ****         twi_status=twi_tran(TWI_DATA);  //Transmit
+ 261               		.loc 1 96 0
+ 262 00fe 81E0      		ldi r24,lo8(1)
+ 263               	.LVL32:
+ 264 0100 0E94 0000 		call twi_tran
+ 265               	.LVL33:
+  97:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;  //TWSR status
+ 266               		.loc 1 97 0
+ 267 0104 8832      		cpi r24,lo8(40)
+ 268 0106 01F4      		brne .L18
+  98:i2c.c         ****         TWDR = (data >> 8);  //Send second byte of data
+ 269               		.loc 1 98 0
+ 270 0108 0093 BB00 		sts 187,r16
+  99:i2c.c         ****         twi_status=twi_tran(TWI_DATA);  //Transmit
+ 271               		.loc 1 99 0
+ 272 010c 81E0      		ldi r24,lo8(1)
+ 273               	.LVL34:
+ 274 010e 0E94 0000 		call twi_tran
+ 275               	.LVL35:
+ 100:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;  //TWSR status
+ 276               		.loc 1 100 0
+ 277 0112 8832      		cpi r24,lo8(40)
+ 278 0114 01F4      		brne .L18
+ 279 0116 C1E0      		ldi r28,lo8(1)
+ 280 0118 D0E0      		ldi r29,0
+ 281               	.LVL36:
+ 282 011a 00C0      		rjmp .L17
+ 283               	.LVL37:
+ 284               	.L41:
+  70:i2c.c         ****             TWDR = 0x60;  //Send the POD data
+ 285               		.loc 1 70 0
+ 286 011c 80E6      		ldi r24,lo8(96)
+ 287               	.LVL38:
+ 288 011e 8093 BB00 		sts 187,r24
+ 289 0122 00C0      		rjmp .L20
+ 290               	.LVL39:
+ 291               	.L21:
+  91:i2c.c         ****             TWDR = 0x40;
+ 292               		.loc 1 91 0
+ 293 0124 80E4      		ldi r24,lo8(64)
+ 294               	.LVL40:
+ 295 0126 8093 BB00 		sts 187,r24
+ 296 012a 00C0      		rjmp .L22
+ 297               		.cfi_endproc
+ 298               	.LFE9:
+ 300               	.global	twi_mcp_read
+ 302               	twi_mcp_read:
+ 303               	.LFB10:
+ 107:i2c.c         **** 
+ 108:i2c.c         **** uint16_t twi_mcp_read(unsigned int twi_address) {
+ 304               		.loc 1 108 0
+ 305               		.cfi_startproc
+ 306               	.LVL41:
+ 307 012c CF93      		push r28
+ 308               	.LCFI5:
+ 309               		.cfi_def_cfa_offset 4
+ 310               		.cfi_offset 28, -3
+ 311 012e DF93      		push r29
+ 312               	.LCFI6:
+ 313               		.cfi_def_cfa_offset 5
+ 314               		.cfi_offset 29, -4
+ 315               	/* prologue: function */
+ 316               	/* frame size = 0 */
+ 317               	/* stack size = 2 */
+ 318               	.L__stack_usage = 2
+ 319               	.LVL42:
+ 320               		.loc 1 108 0
+ 321 0130 C2E3      		ldi r28,lo8(50)
+ 109:i2c.c         ****     /*
+ 110:i2c.c         ****     Reads the data stored in the EEPROM and returns it as 16bit long data
+ 111:i2c.c         ****     */
+ 112:i2c.c         ****     unsigned char n = 0;
+ 113:i2c.c         ****     unsigned char twi_status;
+ 114:i2c.c         ****     char r_val = -1;
+ 115:i2c.c         ****     uint8_t set, first, second, all_first, all_second;
+ 116:i2c.c         ****     twi_retry:
+ 117:i2c.c         ****         if (n++ >= MAX_TRIES) return r_val;
+ 118:i2c.c         **** 
+ 119:i2c.c         ****         //first we must try to start the TWI interface
+ 120:i2c.c         ****         twi_status=twi_tran(TWI_START);  //Start Condition
+ 121:i2c.c         ****         if (twi_status == TW_MT_ARB_LOST) goto twi_retry;  //TWI Status
+ 122:i2c.c         ****         if ((twi_status != TW_START) && (twi_status != TW_REP_START)) goto twi_quit;
+ 123:i2c.c         **** 
+ 124:i2c.c         ****         //next we send the slave address, which in this case has 0 to only write to the dac
+ 125:i2c.c         ****         TWDR = twi_address | 1;  //Send slave address
+ 322               		.loc 1 125 0
+ 323 0132 D82F      		mov r29,r24
+ 324 0134 D160      		ori r29,lo8(1)
+ 325               	.LVL43:
+ 326               	.L43:
+ 120:i2c.c         ****         twi_status=twi_tran(TWI_START);  //Start Condition
+ 327               		.loc 1 120 0
+ 328 0136 80E0      		ldi r24,0
+ 329 0138 0E94 0000 		call twi_tran
+ 330               	.LVL44:
+ 121:i2c.c         ****         if (twi_status == TW_MT_ARB_LOST) goto twi_retry;  //TWI Status
+ 331               		.loc 1 121 0
+ 332 013c 8833      		cpi r24,lo8(56)
+ 333 013e 01F0      		breq .L45
+ 122:i2c.c         ****         if ((twi_status != TW_START) && (twi_status != TW_REP_START)) goto twi_quit;
+ 334               		.loc 1 122 0
+ 335 0140 8830      		cpi r24,lo8(8)
+ 336 0142 01F0      		breq .L46
+ 122:i2c.c         ****         if ((twi_status != TW_START) && (twi_status != TW_REP_START)) goto twi_quit;
+ 337               		.loc 1 122 0 is_stmt 0 discriminator 1
+ 338 0144 8031      		cpi r24,lo8(16)
+ 339 0146 01F4      		brne .L47
+ 340               	.L46:
+ 341               		.loc 1 125 0 is_stmt 1
+ 342 0148 D093 BB00 		sts 187,r29
+ 126:i2c.c         ****         twi_status=twi_tran(TWI_DATA);  //Transmit
+ 343               		.loc 1 126 0
+ 344 014c 81E0      		ldi r24,lo8(1)
+ 345               	.LVL45:
+ 346 014e 0E94 0000 		call twi_tran
+ 347               	.LVL46:
+ 127:i2c.c         ****         if ((twi_status == TW_MT_SLA_NACK) || (twi_status == TW_MT_ARB_LOST)) goto twi_retry;  //TW
+ 348               		.loc 1 127 0
+ 349 0152 8032      		cpi r24,lo8(32)
+ 350 0154 01F0      		breq .L45
+ 351               		.loc 1 127 0 is_stmt 0 discriminator 1
+ 352 0156 8833      		cpi r24,lo8(56)
+ 353 0158 01F4      		brne .L67
+ 354               	.L45:
+ 355               	.LVL47:
+ 356 015a C150      		subi r28,lo8(-(-1))
+ 357               	.LVL48:
+ 117:i2c.c         ****         if (n++ >= MAX_TRIES) return r_val;
+ 358               		.loc 1 117 0 is_stmt 1
+ 359 015c 01F4      		brne .L43
+ 128:i2c.c         ****         if (twi_status != TW_MT_SLA_ACK) goto twi_quit;
+ 129:i2c.c         **** 
+ 130:i2c.c         ****         set = TWDR;
+ 131:i2c.c         ****         mcp_data[0] = set;
+ 132:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;
+ 133:i2c.c         **** 
+ 134:i2c.c         ****         first = TWDR;
+ 135:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;
+ 136:i2c.c         **** 
+ 137:i2c.c         ****         second = TWDR;
+ 138:i2c.c         ****         mcp_data[1] = (first | (second >> 8));
+ 139:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;
+ 140:i2c.c         **** 
+ 141:i2c.c         ****         all_first = TWDR;
+ 142:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;
+ 143:i2c.c         **** 
+ 144:i2c.c         ****         all_second = TWDR;
+ 145:i2c.c         ****         mcp_data[2] = (all_first | (all_second >> 8));
+ 146:i2c.c         ****         if (twi_status != TW_MT_DATA_ACK) goto twi_quit;
+ 147:i2c.c         ****         r_val=1;
+ 148:i2c.c         **** 
+ 149:i2c.c         ****     twi_quit:
+ 150:i2c.c         ****         //and finally stop
+ 151:i2c.c         ****         twi_status=twi_tran(TWI_STOP);  //Transmit
+ 152:i2c.c         ****         return r_val;
+ 153:i2c.c         **** }
+ 360               		.loc 1 153 0
+ 361 015e 8FEF      		ldi r24,lo8(-1)
+ 362 0160 90E0      		ldi r25,0
+ 363               	.LVL49:
+ 364               	/* epilogue start */
+ 365 0162 DF91      		pop r29
+ 366 0164 CF91      		pop r28
+ 367               	.LVL50:
+ 368 0166 0895      		ret
+ 369               	.LVL51:
+ 370               	.L67:
+ 128:i2c.c         ****         if (twi_status != TW_MT_SLA_ACK) goto twi_quit;
+ 371               		.loc 1 128 0
+ 372 0168 8831      		cpi r24,lo8(24)
+ 373 016a 01F4      		brne .L47
+ 130:i2c.c         ****         set = TWDR;
+ 374               		.loc 1 130 0
+ 375 016c 8091 BB00 		lds r24,187
+ 376               	.LVL52:
+ 131:i2c.c         ****         mcp_data[0] = set;
+ 377               		.loc 1 131 0
+ 378 0170 90E0      		ldi r25,0
+ 379 0172 9093 0000 		sts mcp_data+1,r25
+ 380 0176 8093 0000 		sts mcp_data,r24
+ 381               	.LVL53:
+ 382               	.L47:
+ 151:i2c.c         ****         twi_status=twi_tran(TWI_STOP);  //Transmit
+ 383               		.loc 1 151 0
+ 384 017a 82E0      		ldi r24,lo8(2)
+ 385 017c 0E94 0000 		call twi_tran
+ 386               	.LVL54:
+ 387               		.loc 1 153 0
+ 388 0180 8FEF      		ldi r24,lo8(-1)
+ 389 0182 90E0      		ldi r25,0
+ 390               	/* epilogue start */
+ 391 0184 DF91      		pop r29
+ 392 0186 CF91      		pop r28
+ 393               	.LVL55:
+ 394 0188 0895      		ret
+ 395               		.cfi_endproc
+ 396               	.LFE10:
+ 398               		.comm	led,1,1
+ 399               		.comm	once,3,1
+ 400               		.comm	dig_count,3,1
+ 401               		.comm	read_spot,2,1
+ 402               		.comm	input_buffer,700,1
+ 403               		.comm	mcp_data,6,1
+ 404               	.Letext0:
+ 405               		.file 2 "/usr/avr/include/stdint.h"
+ 406               		.file 3 "i2c.h"
+ 407               		.file 4 "uart.h"
+ 408               		.file 5 "button.h"
+ 409               		.file 6 "global.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 i2c.c
+     /tmp/cccp31oq.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cccp31oq.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cccp31oq.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cccp31oq.s:5      *ABS*:000000000000003b __RAMPZ__
+     /tmp/cccp31oq.s:6      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cccp31oq.s:7      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cccp31oq.s:17     .text:0000000000000000 twi_start
+     /tmp/cccp31oq.s:41     .text:0000000000000012 twi_tran
+     /tmp/cccp31oq.s:96     .text:000000000000004c twi_mcp_dac
+     /tmp/cccp31oq.s:302    .text:000000000000012c twi_mcp_read
+                            *COM*:0000000000000006 mcp_data
+                            *COM*:0000000000000001 led
+                            *COM*:0000000000000003 once
+                            *COM*:0000000000000003 dig_count
+                            *COM*:0000000000000002 read_spot
+                            *COM*:00000000000002bc input_buffer
+
+UNDEFINED SYMBOLS
+uart_sendstr
+__do_copy_data
+__do_clear_bss
